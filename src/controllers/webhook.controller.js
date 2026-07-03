@@ -1,8 +1,10 @@
 const budpayService = require("../services/budpay.service");
 
 exports.handleWebhook = async (req, res) => {
+
     try {
-        await budpayService.processWebhook(req);
+
+        await budpayService.processWebhook(req.body);
 
         return res.status(200).json({
             success: true
@@ -18,4 +20,5 @@ exports.handleWebhook = async (req, res) => {
         });
 
     }
+
 };

@@ -1,15 +1,15 @@
 const prisma = require("../config/prisma");
 
-exports.processWebhook = async (req) => {
+exports.processWebhook = async (payload) => {
 
-    console.log("===============");
-    console.log("BudPay Webhook");
-    console.log("===============");
+    console.log("================================");
+    console.log("Incoming BudPay Webhook");
+    console.log("================================");
 
-    console.log(req.headers);
+    console.log(JSON.stringify(payload, null, 2));
 
-    console.log(req.body);
+    // We'll save to the database after we know
+    // BudPay's exact payload structure.
 
     return true;
-
 };
