@@ -1,24 +1,20 @@
 const budpayService = require("../services/budpay.service");
 
 exports.handleWebhook = async (req, res) => {
+    console.log("\n========== WEBHOOK ==========");
+    console.log("Method:", req.method);
+    console.log("Headers:");
+    console.log(req.headers);
 
-    try {
+    console.log("\nBody:");
+    console.dir(req.body, { depth: null });
 
-        await budpayService.processWebhook(req.body);
+    console.log("\nRaw:");
+    console.log(JSON.stringify(req.body, null, 2));
 
-        return res.status(200).json({
-            success: true
-        });
+    console.log("=============================\n");
 
-    } catch (error) {
-
-        console.error(error);
-
-        return res.status(500).json({
-            success: false,
-            message: error.message
-        });
-
-    }
-
+    return res.status(200).json({
+        success: true
+    });
 };
