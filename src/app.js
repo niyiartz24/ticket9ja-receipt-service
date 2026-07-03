@@ -3,15 +3,24 @@ const cors = require("cors");
 const helmet = require("helmet");
 const compression = require("compression");
 const morgan = require("morgan");
+const path = require("path");
+
+
 
 const webhookRoutes = require("./routes/webhook.routes");
 const receiptRoutes = require("./routes/receipt.routes");
+const paymentRoutes = require("./routes/payment.routes");
+
+
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use(express.static(path.join(__dirname, "../public")));
+app.use("/api/payments", paymentRoutes);
 
 app.use(helmet());
 app.use(compression());
