@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Transaction {
+
+  id                 String   @id @default(cuid())
+
+  receiptId          String   @unique
+
+  customerName       String?
+
+  email              String
+
+  phone              String?
+
+  invoiceNumber      String   @unique
+
+  transactionId      String   @unique
+
+  amount             Float
+
+  currency           String
+
+  paymentMethod      String?
+
+  paymentStatus      String
+
+  description        String?
+
+  paymentDate        DateTime
+
+  createdAt          DateTime @default(now())
+
+  updatedAt          DateTime @updatedAt
+}
