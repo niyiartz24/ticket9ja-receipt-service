@@ -34,6 +34,10 @@ app.get("/", (req, res) => {
     });
 });
 
+app.get("/payment-success", (req, res) => {
+    res.send("Payment completed successfully. You can close this page.");
+});
+
 app.use("/api/webhooks", webhookRoutes);
 app.use("/api/receipts", receiptRoutes);
 
