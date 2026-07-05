@@ -9,33 +9,41 @@ datasource db {
 
 model Transaction {
 
-  id                 String   @id @default(cuid())
+  id              String   @id @default(cuid())
 
-  receiptId          String   @unique
+  // Internal Receipt Number
+  receiptId       String   @unique
 
-  customerName       String?
+  // BudPay Reference
+  reference       String   @unique
 
-  email              String
+  customerName    String?
 
-  phone              String?
+  email           String
 
-  invoiceNumber      String   @unique
+  phone           String?
 
-  transactionId      String   @unique
+  // Ticket9ja Invoice (optional)
+  invoiceNumber   String?  @unique
 
-  amount             Float
+  // BudPay Transaction ID (optional)
+  transactionId   String?  @unique
 
-  currency           String
+  amount          Float
 
-  paymentMethod      String?
+  currency        String
 
-  paymentStatus      String
+  paymentMethod   String?
 
-  description        String?
+  paymentStatus   String
 
-  paymentDate        DateTime
+  description     String?
 
-  createdAt          DateTime @default(now())
+  paymentDate     DateTime?
 
-  updatedAt          DateTime @updatedAt
+  receiptSent     Boolean  @default(false)
+
+  createdAt       DateTime @default(now())
+
+  updatedAt       DateTime @updatedAt
 }

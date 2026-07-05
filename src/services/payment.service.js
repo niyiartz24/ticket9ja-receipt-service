@@ -24,3 +24,17 @@ exports.initialize = async (paymentData) => {
 
   return response.data;
 };
+
+exports.verifyPayment = async (reference) => {
+    const response = await axios.get(
+        `https://api.budpay.com/api/v2/transaction/verify/${reference}`,
+        {
+            headers: {
+                Authorization: `Bearer ${process.env.BUDPAY_SECRET_KEY}`,
+                "Content-Type": "application/json"
+            }
+        }
+    );
+
+    return response.data;
+};
