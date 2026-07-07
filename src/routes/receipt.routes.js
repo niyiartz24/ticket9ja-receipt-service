@@ -4,7 +4,7 @@ const router = express.Router();
 
 const receiptController = require("../controllers/receipt.controller");
 
-router.post("/search", receiptController.search);
+router.post("/search", receiptController.searchReceipt);
 
 router.get("/:receiptId", receiptController.getReceipt);
 
