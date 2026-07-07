@@ -79,7 +79,10 @@ exports.viewReceipt = async (req, res) => {
             return res.status(404).send("Receipt not found");
         }
 
-        res.send(receiptTemplate(receipt));
+        const html =
+    await receiptTemplate(receipt);
+
+res.send(html);
 
     } catch (error) {
 

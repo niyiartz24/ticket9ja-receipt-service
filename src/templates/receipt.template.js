@@ -1,3 +1,6 @@
+const { generateQRCode } =
+require("../utils/qrcode.util");
+
 const formatCurrency = (amount) => {
     return new Intl.NumberFormat("en-NG", {
         style: "currency",
@@ -12,8 +15,13 @@ const formatDate = (date) => {
     });
 };
 
-module.exports = (receipt) => `
-<!DOCTYPE html>
+module.exports = async (receipt) => {
+
+    const qrCode =
+        await generateQRCode(receipt.receiptId);
+
+    return `
+        <!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -163,8 +171,24 @@ This receipt was generated automatically by Ticket9ja.
 </div>
 
 </div>
+<div style="text-align:center;margin-top:40px;">
+
+<h3>Verify this Receipt</h3>
+
+<img
+src="${qrCode}"
+width="170"
+/>
+
+<p style="margin-top:10px;">
+Scan to verify authenticity
+</p>
+
+</div>
 
 </body>
 
 </html>
-`;
+    `;
+
+};
