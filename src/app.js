@@ -34,12 +34,18 @@ app.get("/", (req, res) => {
     });
 });
 
-app.get("/debug/prisma", async (req, res) => {
-  const model = Prisma.dmmf.datamodel.models.find(
+app.get("/debug/schema", (req, res) => {
+  const transaction = Prisma.dmmf.datamodel.models.find(
     (m) => m.name === "Transaction"
   );
 
-  res.json(model);
+  res.json({
+    fields: transaction.fields.map((f) => ({
+      name: f.name,
+      unique: f.isUnique,
+      required: f.isRequired
+    }))
+  });
 });
 
 app.get("/payment-success", (req, res) => {
