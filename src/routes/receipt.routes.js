@@ -6,6 +6,8 @@ const receiptController = require("../controllers/receipt.controller");
 
 router.post("/search", receiptController.searchReceipt);
 
+router.get("/:receiptId/view", receiptController.viewReceipt);
+
 router.get("/:receiptId", receiptController.getReceipt);
 
 router.get("/:receiptId/pdf", receiptController.downloadPDF);
