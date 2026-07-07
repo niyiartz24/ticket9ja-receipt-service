@@ -10,7 +10,7 @@ const path = require("path");
 const webhookRoutes = require("./routes/webhook.routes");
 const receiptRoutes = require("./routes/receipt.routes");
 const paymentRoutes = require("./routes/payment.routes");
-
+const { Prisma } = require("@prisma/client");
 
 
 const app = express();
@@ -32,6 +32,14 @@ app.get("/", (req, res) => {
         version: "1.0.0",
         status: "Running"
     });
+});
+
+app.get("/debug/prisma", async (req, res) => {
+  const model = Prisma.dmmf.datamodel.models.find(
+    (m) => m.name === "Transaction"
+  );
+
+  res.json(model);
 });
 
 app.get("/payment-success", (req, res) => {
