@@ -2,6 +2,7 @@
 const prisma = require("../config/prisma");
 
 const receiptTemplate = require("../templates/receipt.template");
+const pdfService = require("../services/pdf.service");
 
 
 exports.searchReceipt = async (req, res) => {
@@ -94,9 +95,55 @@ res.send(html);
 
 exports.downloadPDF = async (req, res) => {
 
-    res.json({
-        message: "PDF endpoint"
-    });
+    try {
+
+        const receipt = await prisma.transaction.findUnique({
+
+            where: {
+                receiptId: req.params.receiptId
+            }
+
+        });
+
+        if (!receipt) {
+
+            return res.status(404).json({
+
+                success: false,
+                message: "Receipt not found"
+
+            });
+
+        }
+
+        const html = await receiptTemplate(receipt);
+
+        const pdf = await pdfService.generatePDF(html);
+
+        res.setHeader(
+            "Content-Type",
+            "application/pdf"
+        );
+
+        res.setHeader(
+            "Content-Disposition",
+            `attachment; filename="${receipt.receiptId}.pdf"`
+        );
+
+        return res.send(pdf);
+
+    } catch (error) {
+
+        console.error(error);
+
+        return res.status(500).json({
+
+            success: false,
+            message: error.message
+
+        });
+
+    }
 
 };
 
