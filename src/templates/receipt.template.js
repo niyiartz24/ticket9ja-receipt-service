@@ -170,7 +170,6 @@ This receipt was generated automatically by Ticket9ja.
 
 </div>
 
-</div>
 <div style="text-align:center;margin-top:40px;">
 
 <h3>Verify this Receipt</h3>
@@ -185,6 +184,9 @@ Scan to verify authenticity
 </p>
 
 </div>
+
+</div>
+
 
 </body>
 
