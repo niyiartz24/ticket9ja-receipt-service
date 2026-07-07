@@ -2,22 +2,20 @@ const chromium = require("@sparticuz/chromium");
 const puppeteer = require("puppeteer-core");
 
 exports.generatePDF = async (html) => {
-
     const browser = await puppeteer.launch({
-        args: chromium.args,
         executablePath: await chromium.executablePath(),
-        headless: chromium.headless
+        args: chromium.args,
+        headless: true
     });
 
     try {
-
         const page = await browser.newPage();
 
         await page.setContent(html, {
             waitUntil: "networkidle0"
         });
 
-        const pdf = await page.pdf({
+        return await page.pdf({
             format: "A4",
             printBackground: true,
             margin: {
@@ -28,12 +26,7 @@ exports.generatePDF = async (html) => {
             }
         });
 
-        return pdf;
-
     } finally {
-
         await browser.close();
-
     }
-
 };
