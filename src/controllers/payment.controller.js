@@ -1,21 +1,23 @@
 const paymentService = require("../services/payment.service");
 const prisma = require("../config/prisma");
-const { generateReceiptId } = require("../utils/receipt.util");
 
 exports.initiate = async (req, res) => {
-  try {
-    const result = await paymentService.initialize(req.body);
+    try {
 
-    return res.json(result);
+        const result = await paymentService.initialize(req.body);
 
-  } catch (error) {
-    console.error(error.response?.data || error.message);
+        return res.json(result);
 
-    return res.status(500).json({
-      success: false,
-      error: error.response?.data || error.message,
-    });
-  }
+    } catch (error) {
+
+        console.error(error);
+
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+
+    }
 };
 
 exports.verify = async (req, res) => {
@@ -24,52 +26,69 @@ exports.verify = async (req, res) => {
 
         const { reference } = req.params;
 
+        // Verify payment with BudPay
         const result = await paymentService.verifyPayment(reference);
 
+        // Payment failed
         if (!result.status || result.data.status !== "success") {
+
+            await prisma.transaction.update({
+                where: {
+                    reference
+                },
+                data: {
+                    paymentStatus: "failed"
+                }
+            });
+
             return res.status(400).json({
                 success: false,
                 message: "Payment not successful"
             });
+
         }
 
-        // Prevent duplicates
-        const existing = await prisma.transaction.findUnique({
+        // Update pending transaction
+        await prisma.transaction.update({
+
             where: {
                 reference
+            },
+
+            data: {
+
+                paymentStatus: "success",
+
+                paymentDate: new Date(),
+
+                transactionId: String(result.data.id),
+
+                paymentMethod: result.data.channel || "BudPay"
+
             }
+
         });
 
-        if (existing) {
-            return res.json({
-                success: true,
-                receipt: existing
-            });
-        }
+        // Fetch updated receipt
+        const receipt = await prisma.transaction.findUnique({
 
-        // Receipt Number
-        const receiptNumber =
-            `T9J-${new Date().getFullYear()}-${Date.now()}`;
+            where: {
+                reference
+            },
 
-        const receipt = await prisma.transaction.create({
-    data: {
-        receiptId: generateReceiptId(),
+            include: {
 
-        reference: result.data.reference,
+                organization: true,
 
-        customerName: "",
+                department: true,
 
-        email: result.customer.email,
+                paymentType: true,
 
-        amount: Number(result.data.amount),
+                session: true
 
-        currency: result.data.currency,
+            }
 
-        paymentStatus: result.data.status,
-
-        paymentDate: new Date()
-    }
-});
+        });
 
         return res.json({
 
