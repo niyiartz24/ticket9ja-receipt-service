@@ -13,9 +13,9 @@ const paymentRoutes = require("./routes/payment.routes");
 const { Prisma } = require("@prisma/client");
 const verifyRoutes = require("./routes/verify.routes");
 const organizationRoutes = require("./routes/organization.routes");
-
-
-
+const departmentRoutes = require("./routes/department.routes");
+const paymentTypeRoutes = require("./routes/paymentType.routes");
+const sessionRoutes = require("./routes/session.routes");
 
 
 
@@ -35,6 +35,9 @@ app.use(morgan("dev"));
 
 app.use("/verify", verifyRoutes);
 app.use("/api/organizations", organizationRoutes);
+app.use("/api/departments", departmentRoutes);
+app.use("/api/payment-types", paymentTypeRoutes);
+app.use("/api/sessions", sessionRoutes);
 
 app.get("/", (req, res) => {
     res.json({
