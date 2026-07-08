@@ -9,7 +9,10 @@
   /* ---------------------------------------------------------
      Config
   --------------------------------------------------------- */
-  var API_BASE = "/api/receipts";
+  const API_BASE =
+    window.location.hostname === "localhost"
+        ? "http://localhost:5000/api/receipts"
+        : "https://ticket9ja-receipt-service.onrender.com/api/receipts";
 
   /* ---------------------------------------------------------
      Element references
