@@ -40,10 +40,20 @@ exports.getReceipt = async (req, res) => {
     try {
 
         const receipt = await prisma.transaction.findUnique({
-            where: {
-                receiptId: req.params.receiptId
+    where: {
+        receiptId: req.params.receiptId
+    },
+    include: {
+        organization: {
+            include: {
+                receiptTemplate: true
             }
-        });
+        },
+        department: true,
+        paymentType: true,
+        session: true
+    }
+});
 
         if (!receipt) {
             return res.status(404).json({
@@ -72,10 +82,20 @@ exports.viewReceipt = async (req, res) => {
     try {
 
         const receipt = await prisma.transaction.findUnique({
-            where: {
-                receiptId: req.params.receiptId
+    where: {
+        receiptId: req.params.receiptId
+    },
+    include: {
+        organization: {
+            include: {
+                receiptTemplate: true
             }
-        });
+        },
+        department: true,
+        paymentType: true,
+        session: true
+    }
+});
 
         if (!receipt) {
             return res.status(404).send("Receipt not found");
@@ -99,12 +119,20 @@ exports.downloadPDF = async (req, res) => {
     try {
 
         const receipt = await prisma.transaction.findUnique({
-
-            where: {
-                receiptId: req.params.receiptId
+    where: {
+        receiptId: req.params.receiptId
+    },
+    include: {
+        organization: {
+            include: {
+                receiptTemplate: true
             }
-
-        });
+        },
+        department: true,
+        paymentType: true,
+        session: true
+    }
+});
 
         if (!receipt) {
 
@@ -153,12 +181,20 @@ exports.emailReceipt = async (req, res) => {
     try {
 
         const receipt = await prisma.transaction.findUnique({
-
-            where: {
-                receiptId: req.params.receiptId
+    where: {
+        receiptId: req.params.receiptId
+    },
+    include: {
+        organization: {
+            include: {
+                receiptTemplate: true
             }
-
-        });
+        },
+        department: true,
+        paymentType: true,
+        session: true
+    }
+});
 
         if (!receipt) {
 
