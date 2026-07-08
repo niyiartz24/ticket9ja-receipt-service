@@ -7,43 +7,162 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Transaction {
+model Organization {
 
   id              String   @id @default(cuid())
 
-  // Internal Receipt Number
-  receiptId       String   @unique
+  name            String
 
-  // BudPay Reference
-  reference       String   @unique
+  shortName       String   @unique
 
-  customerName    String?
+  logo            String?
 
-  email           String
+  email           String?
 
   phone           String?
 
-  // Ticket9ja Invoice (optional)
-  invoiceNumber   String?  @unique
+  address         String?
 
-  // BudPay Transaction ID (optional)
-  transactionId   String?  @unique
+  primaryColor    String? @default("#0F172A")
 
-  amount          Float
-
-  currency        String
-
-  paymentMethod   String?
-
-  paymentStatus   String
-
-  description     String?
-
-  paymentDate     DateTime?
-
-  receiptSent     Boolean  @default(false)
+  isActive        Boolean @default(true)
 
   createdAt       DateTime @default(now())
 
   updatedAt       DateTime @updatedAt
+
+  departments     Department[]
+
+  paymentTypes    PaymentType[]
+
+  receiptTemplate ReceiptTemplate?
+
+  transactions    Transaction[]
+}
+
+model Department {
+
+  id String @id @default(cuid())
+
+  name String
+
+  organizationId String
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  transactions Transaction[]
+}
+
+model AcademicSession {
+
+  id String @id @default(cuid())
+
+  name String @unique
+
+  active Boolean @default(false)
+
+  createdAt DateTime @default(now())
+
+  transactions Transaction[]
+}
+
+model PaymentType {
+
+  id String @id @default(cuid())
+
+  title String
+
+  description String?
+
+  defaultAmount Float?
+
+  organizationId String
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  transactions Transaction[]
+}
+
+model ReceiptTemplate {
+
+  id String @id @default(cuid())
+
+  organizationId String @unique
+
+  logo String?
+
+  footerText String?
+
+  watermark String?
+
+  primaryColor String @default("#0F172A")
+
+  secondaryColor String @default("#F8FAFC")
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+}
+
+model Transaction {
+
+  id String @id @default(cuid())
+
+  receiptId String @unique
+
+  reference String @unique
+
+  payerName String
+
+  email String
+
+  phone String?
+
+  matricNumber String?
+
+  level String?
+
+  amount Float
+
+  currency String
+
+  paymentStatus String
+
+  paymentMethod String?
+
+  description String?
+
+  paymentDate DateTime?
+
+  receiptSent Boolean @default(false)
+
+  organizationId String
+
+  departmentId String?
+
+  paymentTypeId String
+
+  sessionId String
+
+  organization Organization @relation(fields:[organizationId], references:[id])
+
+  department Department? @relation(fields:[departmentId], references:[id])
+
+  paymentType PaymentType @relation(fields:[paymentTypeId], references:[id])
+
+  session AcademicSession @relation(fields:[sessionId], references:[id])
+
+  createdAt DateTime @default(now())
+
+  updatedAt DateTime @updatedAt
 }

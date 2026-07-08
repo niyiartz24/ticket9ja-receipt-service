@@ -1,0 +1,119 @@
+const { PrismaClient } = require("@prisma/client");
+
+const prisma = new PrismaClient();
+
+async function main() {
+
+    const organization = await prisma.organization.create({
+
+        data: {
+
+            name: "College of Veterinary Medicine",
+
+            shortName: "COLVET",
+
+            email: "colvet@funaab.edu.ng"
+
+        }
+
+    });
+
+    await prisma.department.createMany({
+
+        data: [
+
+            {
+                name: "Microbiology",
+                organizationId: organization.id
+            },
+
+            {
+                name: "Biochemistry",
+                organizationId: organization.id
+            },
+
+            {
+                name: "Animal Science",
+                organizationId: organization.id
+            }
+
+        ]
+
+    });
+
+    await prisma.paymentType.createMany({
+
+        data: [
+
+            {
+
+                title: "Laboratory Fee",
+
+                defaultAmount: 15000,
+
+                organizationId: organization.id
+
+            },
+
+            {
+
+                title: "Departmental Due",
+
+                defaultAmount: 5000,
+
+                organizationId: organization.id
+
+            },
+
+            {
+
+                title: "Acceptance Fee",
+
+                defaultAmount: 50000,
+
+                organizationId: organization.id
+
+            }
+
+        ]
+
+    });
+
+    await prisma.academicSession.create({
+
+        data: {
+
+            name: "2026/2027",
+
+            active: true
+
+        }
+
+    });
+
+    await prisma.receiptTemplate.create({
+
+        data: {
+
+            organizationId: organization.id,
+
+            footerText: "Powered by Ticket9ja",
+
+            primaryColor: "#0F172A"
+
+        }
+
+    });
+
+    console.log("Database seeded successfully.");
+}
+
+main()
+.then(async () => {
+    await prisma.$disconnect();
+})
+.catch(async (e) => {
+    console.error(e);
+    await prisma.$disconnect();
+    process.exit(1);
+});

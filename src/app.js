@@ -12,6 +12,9 @@ const receiptRoutes = require("./routes/receipt.routes");
 const paymentRoutes = require("./routes/payment.routes");
 const { Prisma } = require("@prisma/client");
 const verifyRoutes = require("./routes/verify.routes");
+const organizationRoutes = require("./routes/organization.routes");
+
+
 
 
 
@@ -25,11 +28,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "../public")));
 app.use("/api/payments", paymentRoutes);
 
+
 app.use(helmet());
 app.use(compression());
 app.use(morgan("dev"));
 
 app.use("/verify", verifyRoutes);
+app.use("/api/organizations", organizationRoutes);
 
 app.get("/", (req, res) => {
     res.json({
