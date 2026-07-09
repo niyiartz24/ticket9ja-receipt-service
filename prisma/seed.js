@@ -8,11 +8,11 @@ async function main() {
 
         data: {
 
-            name: "College of Veterinary Medicine",
+            name: "College of BioSciences",
 
-            shortName: "COLVET",
+            shortName: "COLBIOS",
 
-            email: "colvet@funaab.edu.ng"
+            email: "colbios@funaab.edu.ng"
 
         }
 
@@ -33,7 +33,11 @@ async function main() {
             },
 
             {
-                name: "Animal Science",
+                name: "Zoology",
+                organizationId: organization.id
+            },
+            {
+                name: "Botany",
                 organizationId: organization.id
             }
 
@@ -47,9 +51,9 @@ async function main() {
 
             {
 
-                title: "Laboratory Fee",
+                title: "SUG Due",
 
-                defaultAmount: 15000,
+                defaultAmount: 1500,
 
                 organizationId: organization.id
 
@@ -67,7 +71,7 @@ async function main() {
 
             {
 
-                title: "Acceptance Fee",
+                title: "College Due",
 
                 defaultAmount: 50000,
 
