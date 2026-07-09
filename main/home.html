@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ticket9jaPay — Secure Institutional Payments</title>
+  <meta name="description" content="Pay departmental dues, faculty dues, acceptance fees, registration fees and more, securely, in one place." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div class="page">
+
+    <header class="site-header">
+      <div class="container">
+        <a class="brand" href="home.html" aria-label="Ticket9jaPay home">
+          <span class="brand-mark" aria-hidden="true"></span>
+          Ticket9jaPay
+        </a>
+        <a class="header-link" href="https://ticket9ja-receipt-service.vercel.app" target="_blank">Retrieve a receipt</a>
+      </div>
+    </header>
+
+    <main>
+      <!-- Hero -->
+      <section class="hero">
+        <div class="container">
+          <span class="hero-eyebrow">
+            <span class="hero-eyebrow-dot" aria-hidden="true"></span>
+            Trusted by universities and student bodies
+          </span>
+          <h1>Ticket9jaPay</h1>
+          <p class="subtitle">Secure institutional payments made simple.</p>
+        </div>
+      </section>
+
+      <!-- Organization selector (only shown when the backend serves more than one institution) -->
+      <section class="block" id="orgSection" hidden>
+        <div class="container">
+          <div class="section-heading">
+            <h2>Select your institution</h2>
+            <span class="hint">Choose where you're making a payment</span>
+          </div>
+          <div class="grid" id="orgGrid" role="list" aria-label="Institutions"></div>
+        </div>
+      </section>
+
+      <!-- Payment types -->
+      <section class="block" id="paymentTypesSection">
+        <div class="container">
+          <div class="section-heading">
+            <h2>Available payments</h2>
+            <span class="hint">Select a payment to continue</span>
+          </div>
+
+          <div id="landingAlert"></div>
+
+          <div class="grid" id="paymentTypesGrid" role="list" aria-label="Available payments" aria-live="polite"></div>
+
+          <div class="empty-state" id="emptyState" hidden>
+            <h3>No payments available yet</h3>
+            <p>Check back soon, or contact your institution for more information.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <div>
+          <div class="foot-brand">Ticket9jaPay</div>
+          <div class="foot-tag">Secure Institutional Payment Platform</div>
+        </div>
+        <div class="foot-powered">Powered by SynthaxLab</div>
+      </div>
+    </footer>
+
+  </div>
+
+  <script src="js/apps.js"></script>
+</body>
+</html>

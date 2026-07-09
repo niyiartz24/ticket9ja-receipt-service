@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket9jaPay - Payment</title>
+
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+<header class="site-header">
+    <div class="container">
+        <a href="index.html" class="brand">
+            Ticket9jaPay
+        </a>
+    </div>
+</header>
+
+<main class="container">
+
+    <!-- Page Alert -->
+    <div id="pageAlert"></div>
+
+    <div class="pay-layout">
+
+        <!-- PAYMENT SUMMARY -->
+        <aside id="summaryCard" class="summary-card">
+
+            <div class="label">
+                Institution
+            </div>
+
+            <div
+                class="org-name"
+                id="summaryOrgName">
+            </div>
+
+            <div class="pay-name"
+                 id="summaryPayName">
+            </div>
+
+            <p
+                class="pay-desc"
+                id="summaryPayDesc">
+            </p>
+
+            <div class="divider"></div>
+
+            <div class="amount-block">
+                <div class="label">
+                    Amount
+                </div>
+
+                <div
+                    class="amount"
+                    id="summaryAmount">
+                </div>
+            </div>
+
+            <div class="secure-note">
+                Secure payment powered by BudPay.
+            </div>
+
+        </aside>
+
+        <!-- PAYMENT FORM -->
+        <section
+            id="formSection"
+            class="form-card">
+
+            <h2>
+                Student Information
+            </h2>
+
+            <p class="form-sub">
+                Fill the information below to continue payment.
+            </p>
+
+            <div id="formAlert" class="form-alert-slot"></div>
+
+            <form id="paymentForm">
+
+                <div class="field">
+
+                    <label>Full Name</label>
+
+                    <input
+                        type="text"
+                        id="fullName">
+
+                    <div class="error-text"></div>
+
+                </div>
+
+                <div class="field">
+
+                    <label>Email</label>
+
+                    <input
+                        type="email"
+                        id="email">
+
+                    <div class="error-text"></div>
+
+                </div>
+
+                <div class="form-row">
+
+                    <div class="field">
+
+                        <label>Phone</label>
+
+                        <input
+                            type="text"
+                            id="phone">
+
+                        <div class="error-text"></div>
+
+                    </div>
+
+                    <div class="field">
+
+                        <label>Matric Number</label>
+
+                        <input
+                            type="text"
+                            id="matricNumber">
+
+                        <div class="error-text"></div>
+
+                    </div>
+
+                </div>
+
+                <div class="form-row">
+
+                    <div class="field">
+
+                        <label>Level</label>
+
+                        <select id="level">
+
+                            <option value="">
+                                Select Level
+                            </option>
+
+                            <option value="100">
+                                100 Level
+                            </option>
+
+                            <option value="200">
+                                200 Level
+                            </option>
+
+                            <option value="300">
+                                300 Level
+                            </option>
+
+                            <option value="400">
+                                400 Level
+                            </option>
+
+                            <option value="500">
+                                500 Level
+                            </option>
+
+                        </select>
+
+                        <div class="error-text"></div>
+
+                    </div>
+
+                    <div
+                        class="field"
+                        id="departmentField">
+
+                        <label>Department</label>
+
+                        <select
+                            id="departmentSelect">
+
+                            <option value="">
+                                Select Department
+                            </option>
+
+                        </select>
+
+                        <div class="error-text"></div>
+
+                    </div>
+
+                </div>
+
+                <div
+                    class="field"
+                    id="sessionField">
+
+                    <label>
+                        Academic Session
+                    </label>
+
+                    <input
+                        type="text"
+                        id="sessionDisplay"
+                        readonly>
+
+                    <input
+                        type="hidden"
+                        id="sessionHiddenId">
+
+                </div>
+
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                    id="submitBtn">
+
+                    <span id="submitBtnLabel">
+                        Proceed to Payment
+                    </span>
+
+                </button>
+
+            </form>
+
+        </section>
+
+    </div>
+
+</main>
+
+<footer class="site-footer">
+    <div class="container">
+        Powered by Ticket9jaPay
+    </div>
+</footer>
+
+<!-- IMPORTANT -->
+<script src="js/apps.js"></script>
+<script src="js/payments.js"></script>
+
+</body>
+</html>
