@@ -4,19 +4,17 @@ const prisma = new PrismaClient();
 
 async function main() {
 
-    const organization = await prisma.organization.create({
-
-        data: {
-
-            name: "College of BioSciences",
-
-            shortName: "COLBIOS",
-
-            email: "colbios@funaab.edu.ng"
-
-        }
-
-    });
+    const organization = await prisma.organization.upsert({
+  where: {
+    shortName: "COLBIOS"
+  },
+  update: {},
+  create: {
+    name: "College of BioSciences",
+    shortName: "COLBIOS",
+    email: "colbios@funaab.edu.ng"
+  }
+});
 
     await prisma.department.createMany({
 
