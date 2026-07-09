@@ -1,8 +1,15 @@
 const express = require("express");
 const router = express.Router();
+const { PrismaClient } = require("@prisma/client");
 
-const sessionController = require("../controllers/session.controller");
+const prisma = new PrismaClient();
 
-router.get("/active", sessionController.getActiveSession);
+router.get("/", async (req, res) => {
+  const sessions = await prisma.academicSession.findMany({
+    where: { active: true }
+  });
+
+  res.json({ sessions });
+});
 
 module.exports = router;
