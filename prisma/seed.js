@@ -61,7 +61,7 @@ async function main() {
 
                 title: "Departmental Due",
 
-                defaultAmount: 5000,
+                defaultAmount: 3500,
 
                 organizationId: organization.id
 
@@ -71,7 +71,7 @@ async function main() {
 
                 title: "College Due",
 
-                defaultAmount: 50000,
+                defaultAmount: 4000,
 
                 organizationId: organization.id
 
