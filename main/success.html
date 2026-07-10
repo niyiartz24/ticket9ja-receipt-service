@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+  <title>Payment Verification — Ticket9jaPay</title>
+  <meta
+    name="description"
+    content="Verifying your Ticket9jaPay payment."
+  />
+
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body>
+
+  <a href="#mainContent" class="visually-hidden">
+    Skip to main content
+  </a>
+
+  <header class="navbar">
+    <div class="container navbar__inner">
+
+      <a href="index.html" class="brand">
+        <span class="brand__mark" aria-hidden="true">
+          T9
+        </span>
+
+        Ticket9jaPay
+      </a>
+
+    </div>
+  </header>
+
+  <main
+    id="mainContent"
+    class="success-page"
+  >
+
+    <section
+      class="card success-card fade-in-up"
+      aria-labelledby="successHeading"
+    >
+
+      <div
+        class="success-icon"
+        aria-hidden="true"
+      >
+
+        <svg
+          width="34"
+          height="34"
+          viewBox="0 0 24 24"
+          fill="none"
+        >
+
+          <path
+            d="M5 13l4 4L19 7"
+            stroke="#16A34A"
+            stroke-width="2.4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+
+        </svg>
+
+      </div>
+
+      <h1 id="successHeading">
+
+        Verifying Payment...
+
+      </h1>
+
+      <p id="successMessage">
+
+        Please wait while we verify your payment and generate your receipt.
+
+      </p>
+
+      <p
+        id="successReference"
+        class="success-ref"
+        hidden
+      ></p>
+
+      <div class="success-actions">
+
+        <button
+          type="button"
+          id="retrieveReceiptBtn"
+          class="btn btn--dark btn--block"
+          disabled
+        >
+          Retrieve Receipt
+        </button>
+
+        <button
+          type="button"
+          id="homeBtn"
+          class="btn btn--outline btn--block"
+        >
+          Home
+        </button>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+
+    <div class="container">
+
+      <p>
+        <strong>Ticket9jaPay</strong>
+      </p>
+
+      <p>
+        Secure Institutional Payment Platform
+      </p>
+
+      <p>
+        Powered by SynthaxLab
+      </p>
+
+    </div>
+
+  </footer>
+
+  <script src="js/success.js"></script>
+
+</body>
+</html>

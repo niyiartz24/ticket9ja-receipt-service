@@ -62,7 +62,7 @@ app.get("/debug/schema", (req, res) => {
 });
 
 app.get("/payment-success", (req, res) => {
-    res.send("Payment completed successfully. You can close this page.");
+    res.sendFile(path.join(__dirname, "../main/success.html"));
 });
 
 app.use("/api/webhooks", webhookRoutes);
