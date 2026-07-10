@@ -68,7 +68,9 @@ exports.initialize = async (paymentData) => {
 
     const amount = paymentType.defaultAmount;
 
-    const reference = `TKT9JA-${Date.now()}`;
+    const crypto = require("crypto");
+
+const reference = `TKT9JA-${crypto.randomUUID()}`;
 
     // Create pending transaction
     await prisma.transaction.create({
@@ -119,7 +121,7 @@ exports.initialize = async (paymentData) => {
 
         reference,
 
-        callback: `${process.env.BASE_URL}/payment-success`
+        callback: `${process.env.BASE_URL}/payment-success?reference=${reference}`
 
     };
 
@@ -215,5 +217,73 @@ exports.verifyPayment = async (reference) => {
         );
 
     }
+
+};
+
+exports.completePayment = async (reference, verification) => {
+
+    const existing = await prisma.transaction.findUnique({
+        where: { reference }
+    });
+
+    if (!existing) {
+        throw new Error("Transaction not found.");
+    }
+
+    // Already processed
+    if (
+        existing.paymentStatus === "successful" &&
+        existing.receiptSent
+    ) {
+        return existing;
+    }
+
+    await prisma.transaction.update({
+        where: {
+            reference
+        },
+        data: {
+            paymentStatus: "successful",
+            paymentDate: new Date(),
+            paymentMethod: verification.data.channel || "BudPay"
+        }
+    });
+
+    const receipt = await prisma.transaction.findUnique({
+        where: {
+            reference
+        },
+        include: {
+            organization: true,
+            department: true,
+            paymentType: true,
+            session: true
+        }
+    });
+
+    if (!receipt.receiptSent) {
+
+        const html = await receiptTemplate(receipt);
+
+        const pdf = await pdfService.generatePDF(html);
+
+        await emailService.sendReceipt({
+            receipt,
+            pdf
+        });
+
+        await prisma.transaction.update({
+            where: {
+                reference
+            },
+            data: {
+                receiptSent: true
+            }
+        });
+
+        receipt.receiptSent = true;
+    }
+
+    return receipt;
 
 };

@@ -6,14 +6,16 @@ exports.verifyReceipt = async (req, res) => {
     try {
 
         const receipt = await prisma.transaction.findUnique({
-
-            where: {
-
-                receiptId: req.params.receiptId
-
-            }
-
-        });
+    where: {
+        receiptId: req.params.receiptId
+    },
+    include: {
+        organization: true,
+        department: true,
+        paymentType: true,
+        session: true
+    }
+});
 
         if (!receipt) {
 

@@ -2,61 +2,59 @@ const { Resend } = require("resend");
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-exports.sendReceipt = async ({
-    receipt,
-    pdf
-}) => {
+exports.sendReceipt = async ({ receipt, pdf }) => {
 
-    return await resend.emails.send({
+    try {
 
-        from: process.env.FROM_EMAIL,
+        const response = await resend.emails.send({
 
-        to: receipt.email,
+            from: process.env.FROM_EMAIL,
 
-        subject: `Payment Receipt - ${receipt.receiptId}`,
+            to: receipt.email,
 
-        html: `
-            <h2>Payment Successful</h2>
+            subject: `Payment Receipt - ${receipt.receiptId}`,
 
-            <p>Hello ${receipt.customerName || "Customer"},</p>
+            html: `
+                <h2>Payment Successful</h2>
 
-            <p>
-                Thank you for your payment.
-            </p>
+                <p>Hello ${receipt.payerName || "Customer"},</p>
 
-            <p>
-                Your receipt is attached.
-            </p>
+                <p>Your payment has been received successfully.</p>
 
-            <p>
-                Receipt ID:
-                <strong>${receipt.receiptId}</strong>
-            </p>
+                <p>Your receipt is attached.</p>
 
-            <p>
-                Reference:
-                <strong>${receipt.reference}</strong>
-            </p>
+                <p><strong>Receipt ID:</strong> ${receipt.receiptId}</p>
 
-            <br>
+                <p><strong>Reference:</strong> ${receipt.reference}</p>
 
-            <p>
-                Thank you for using Ticket9ja.
-            </p>
-        `,
+                <br>
 
-        attachments: [
+                <p>Powered by Ticket9jaPay</p>
+            `,
 
-            {
+            attachments: [
+                {
+                    filename: `${receipt.receiptId}.pdf`,
+                    content: pdf.toString("base64")
+                }
+            ]
 
-                filename: `${receipt.receiptId}.pdf`,
+        });
 
-                content: pdf.toString("base64")
+        console.log("Resend response:", response);
 
-            }
+        if (response.error) {
+            throw new Error(response.error.message);
+        }
 
-        ]
+        return response;
 
-    });
+    } catch (error) {
+
+        console.error("Email Error:", error);
+
+        throw error;
+
+    }
 
 };

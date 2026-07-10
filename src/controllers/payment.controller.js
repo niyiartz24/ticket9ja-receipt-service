@@ -32,21 +32,30 @@ exports.verify = async (req, res) => {
         // Payment failed
         if (!result.status || result.data.status !== "success") {
 
-            await prisma.transaction.update({
-                where: {
-                    reference
-                },
-                data: {
-                    paymentStatus: "failed"
-                }
-            });
-
-            return res.status(400).json({
-                success: false,
-                message: "Payment not successful"
-            });
-
+    await prisma.transaction.update({
+        where: { reference },
+        data: {
+            paymentStatus: "failed"
         }
+    });
+
+    return res.status(400).json({
+        success: false,
+        message: "Payment not successful"
+    });
+
+}
+
+const receipt =
+    await paymentService.completePayment(
+        reference,
+        result
+    );
+
+return res.json({
+    success: true,
+    receipt
+});
 
         // Update pending transaction
         await prisma.transaction.update({
