@@ -32,79 +32,31 @@ exports.verify = async (req, res) => {
         // Payment failed
         if (!result.status || result.data.status !== "success") {
 
-    await prisma.transaction.update({
-        where: { reference },
-        data: {
-            paymentStatus: "failed"
+            await prisma.transaction.update({
+                where: {
+                    reference
+                },
+                data: {
+                    paymentStatus: "failed"
+                }
+            });
+
+            return res.status(400).json({
+                success: false,
+                message: "Payment not successful"
+            });
+
         }
-    });
 
-    return res.status(400).json({
-        success: false,
-        message: "Payment not successful"
-    });
-
-}
-
-const receipt =
-    await paymentService.completePayment(
-        reference,
-        result
-    );
-
-return res.json({
-    success: true,
-    receipt
-});
-
-        // Update pending transaction
-        await prisma.transaction.update({
-
-            where: {
-                reference
-            },
-
-            data: {
-
-                paymentStatus: "success",
-
-                paymentDate: new Date(),
-
-                transactionId: String(result.data.id),
-
-                paymentMethod: result.data.channel || "BudPay"
-
-            }
-
-        });
-
-        // Fetch updated receipt
-        const receipt = await prisma.transaction.findUnique({
-
-            where: {
-                reference
-            },
-
-            include: {
-
-                organization: true,
-
-                department: true,
-
-                paymentType: true,
-
-                session: true
-
-            }
-
-        });
+        // Complete payment (updates transaction, generates receipt, sends email)
+        const receipt = await paymentService.completePayment(
+            reference,
+            result
+        );
 
         return res.json({
-
             success: true,
-
             receipt
-
         });
 
     } catch (error) {
@@ -112,11 +64,8 @@ return res.json({
         console.error(error.response?.data || error);
 
         return res.status(500).json({
-
             success: false,
-
             message: error.message
-
         });
 
     }
