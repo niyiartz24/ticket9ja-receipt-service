@@ -121,7 +121,7 @@ const reference = `TKT9JA-${crypto.randomUUID()}`;
 
         reference,
 
-        callback: `${process.env.BASE_URL}/payment-success?reference=${reference}`
+        callback: `https://ticket9japay.vercel.app/success.html?reference=${reference}`
 
     };
 
