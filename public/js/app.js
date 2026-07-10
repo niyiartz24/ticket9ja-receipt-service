@@ -234,6 +234,75 @@
     );
   }
 
+  function renderReceiptList(receipts) {
+
+  resultsEl.innerHTML =
+    '<div class="receipt-list">' +
+    '<h3 style="margin-bottom:20px;">Select a Receipt</h3>' +
+
+    receipts.map(function(receipt){
+
+      var receiptId = pick(receipt, ["receiptId"]);
+      var amount = formatAmount(receipt);
+      var paymentDate = formatDate(
+          pick(receipt, ["paymentDate","createdAt"])
+      );
+      var paymentType = pick(receipt, [
+          "paymentType",
+          "description"
+      ]) || "Payment";
+
+      return `
+        <div class="receipt-card" style="margin-bottom:16px;">
+            <div class="receipt-card__body">
+
+                ${detailRow("Payment", paymentType)}
+                ${detailRow("Amount", amount)}
+                ${detailRow("Date", paymentDate)}
+                ${detailRow("Receipt ID", receiptId)}
+
+            </div>
+
+            <div class="receipt-card__actions">
+
+                <button
+                    class="action-btn is-primary"
+                    data-receipt="${receiptId}"
+                >
+                    Open Receipt
+                </button>
+
+            </div>
+
+        </div>
+      `;
+
+    }).join("") +
+
+    "</div>";
+
+
+
+    resultsEl
+      .querySelectorAll("[data-receipt]")
+      .forEach(function(btn){
+
+        btn.addEventListener("click",function(){
+
+            var id=this.dataset.receipt;
+
+            var receipt=receipts.find(function(r){
+                return r.receiptId===id;
+            });
+
+            renderReceipt(receipt);
+
+        });
+
+      });
+
+}
+
   function renderReceipt(receipt) {
     var receiptId = pick(receipt, ["receiptId", "id", "receipt_id"]);
     var studentName = pick(receipt, ["studentName", "name", "fullName", "student_name"]);
@@ -335,22 +404,64 @@
           });
       })
       .then(function (result) {
-        if (result.ok && result.data && result.data.success && result.data.receipt) {
-          renderReceipt(result.data.receipt);
-        } else if (result.status === 404) {
-          renderState({
+
+    if (result.ok && result.data && result.data.success) {
+
+        // New backend response (multiple receipts)
+        if (Array.isArray(result.data.receipts)) {
+
+            if (result.data.receipts.length === 0) {
+
+                renderState({
+                    isError: false,
+                    title: "No receipt found.",
+                    message: "Please check your Email, Receipt ID or Transaction Reference."
+                });
+
+            } else if (result.data.receipts.length === 1) {
+
+                renderReceipt(result.data.receipts[0]);
+
+            } else {
+
+                renderReceiptList(result.data.receipts);
+
+            }
+
+        }
+
+        // Backward compatibility with old backend
+        else if (result.data.receipt) {
+
+            renderReceipt(result.data.receipt);
+
+        }
+
+    }
+
+    else if (result.status === 404) {
+
+        renderState({
             isError: false,
             title: "No receipt found.",
             message: "Please check your Email, Receipt ID or Transaction Reference."
-          });
-        } else {
-          renderState({
+        });
+
+    }
+
+    else {
+
+        renderState({
             isError: true,
             title: "Something went wrong.",
-            message: (result.data && result.data.message) || "We couldn't complete your search. Please try again shortly."
-          });
-        }
-      })
+            message:
+                (result.data && result.data.message) ||
+                "We couldn't complete your search. Please try again shortly."
+        });
+
+    }
+
+})
       .catch(function () {
         renderState({
           isError: true,

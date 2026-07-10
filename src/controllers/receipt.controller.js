@@ -7,33 +7,63 @@ const emailService = require("../services/email.service");
 
 
 exports.searchReceipt = async (req, res) => {
+    try {
+        const { email, reference, receiptId } = req.body;
 
-    const { email, reference, invoiceNumber } = req.body;
+        // Search by email → return ALL receipts
+        if (email) {
+            const receipts = await prisma.transaction.findMany({
+                where: {
+                    email: email.trim().toLowerCase()
+                },
+                orderBy: {
+                    paymentDate: "desc"
+                }
+            });
 
-    const receipt = await prisma.transaction.findFirst({
-        where: {
-            OR: [
-                email ? { email } : undefined,
-                reference ? { reference } : undefined,
-                invoiceNumber ? { invoiceNumber } : undefined
-            ].filter(Boolean)
+            if (!receipts.length) {
+                return res.status(404).json({
+                    success: false,
+                    message: "No receipts found."
+                });
+            }
+
+            return res.json({
+                success: true,
+                receipts
+            });
         }
-    });
 
-    if (!receipt) {
-
-        return res.status(404).json({
-            success: false,
-            message: "Receipt not found"
+        // Search by reference or receiptId → return one receipt
+        const receipt = await prisma.transaction.findFirst({
+            where: {
+                OR: [
+                    reference ? { reference } : undefined,
+                    receiptId ? { receiptId } : undefined
+                ].filter(Boolean)
+            }
         });
 
+        if (!receipt) {
+            return res.status(404).json({
+                success: false,
+                message: "Receipt not found."
+            });
+        }
+
+        return res.json({
+            success: true,
+            receipt
+        });
+
+    } catch (err) {
+        console.error(err);
+
+        return res.status(500).json({
+            success: false,
+            message: err.message
+        });
     }
-
-    return res.json({
-        success: true,
-        receipt
-    });
-
 };
 
 exports.getReceipt = async (req, res) => {
