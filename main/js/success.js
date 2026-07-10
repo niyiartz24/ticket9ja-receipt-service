@@ -42,7 +42,7 @@
 
     retrieveBtn.disabled = true;
 
-    fetch(`${BACKEND_URL}/api/payments/verify/${reference}`)
+    fetch(`${BACKEND_URL}/payments/verify/${reference}`)
 
         .then(async (response) => {
 
