@@ -68,7 +68,7 @@
             retrieveBtn.onclick = function () {
 
                 window.location.href =
-                    `${BACKEND_URL}/api/receipts/${data.receipt.receiptId}/view`;
+                    `${BACKEND_URL}/receipts/${data.receipt.receiptId}/view`;
 
             };
 
