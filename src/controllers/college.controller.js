@@ -1,28 +1,23 @@
-const departmentService = require("../services/department.service");
+const collegeService =
+require("../services/college.service");
 
 exports.getAll = async (req, res) => {
 
     try {
 
-        const departments =
-            await departmentService.getAll();
+        const colleges =
+            await collegeService.getAll();
 
-        return res.json({
-
+        res.json({
             success: true,
-
-            departments
-
+            colleges
         });
 
     } catch (err) {
 
-        return res.status(500).json({
-
+        res.status(500).json({
             success: false,
-
             message: err.message
-
         });
 
     }
@@ -33,58 +28,46 @@ exports.getById = async (req, res) => {
 
     try {
 
-        const department =
-            await departmentService.getById(
+        const college =
+            await collegeService.getById(
                 req.params.id
             );
 
-        return res.json({
-
+        res.json({
             success: true,
-
-            department
-
+            college
         });
 
     } catch (err) {
 
-        return res.status(404).json({
-
+        res.status(404).json({
             success: false,
-
             message: err.message
-
         });
 
     }
 
 };
 
-exports.getByCollege = async (req, res) => {
+exports.getByOrganization = async (req, res) => {
 
     try {
 
-        const departments =
-            await departmentService.getByCollege(
-                req.params.collegeId
+        const colleges =
+            await collegeService.getByOrganization(
+                req.params.organizationId
             );
 
-        return res.json({
-
+        res.json({
             success: true,
-
-            departments
-
+            colleges
         });
 
     } catch (err) {
 
-        return res.status(500).json({
-
+        res.status(500).json({
             success: false,
-
             message: err.message
-
         });
 
     }
@@ -95,27 +78,19 @@ exports.create = async (req, res) => {
 
     try {
 
-        const department =
-            await departmentService.create(
-                req.body
-            );
+        const college =
+            await collegeService.create(req.body);
 
-        return res.status(201).json({
-
+        res.status(201).json({
             success: true,
-
-            department
-
+            college
         });
 
     } catch (err) {
 
-        return res.status(400).json({
-
+        res.status(400).json({
             success: false,
-
             message: err.message
-
         });
 
     }
@@ -126,28 +101,22 @@ exports.update = async (req, res) => {
 
     try {
 
-        const department =
-            await departmentService.update(
+        const college =
+            await collegeService.update(
                 req.params.id,
                 req.body
             );
 
-        return res.json({
-
+        res.json({
             success: true,
-
-            department
-
+            college
         });
 
     } catch (err) {
 
-        return res.status(400).json({
-
+        res.status(400).json({
             success: false,
-
             message: err.message
-
         });
 
     }
@@ -158,21 +127,21 @@ exports.remove = async (req, res) => {
 
     try {
 
-        await departmentService.remove(
+        await collegeService.remove(
             req.params.id
         );
 
-        return res.json({
+        res.json({
 
             success: true,
 
-            message: "Department deactivated successfully."
+            message: "College deactivated."
 
         });
 
     } catch (err) {
 
-        return res.status(400).json({
+        res.status(400).json({
 
             success: false,
 

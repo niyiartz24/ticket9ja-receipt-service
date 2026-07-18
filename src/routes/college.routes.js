@@ -1,7 +1,7 @@
 const router = require("express").Router();
 
 const controller =
-require("../controllers/organization.controller");
+require("../controllers/college.controller");
 
 const auth =
 require("../auth/auth.middleware");
@@ -18,6 +18,11 @@ router.use(
 router.get("/", controller.getAll);
 
 router.get("/:id", controller.getById);
+
+router.get(
+    "/organization/:organizationId",
+    controller.getByOrganization
+);
 
 router.post("/", controller.create);
 

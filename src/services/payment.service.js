@@ -4,40 +4,16 @@ const { generateReceiptId } = require("../utils/receipt.util");
 const receiptTemplate = require("../templates/receipt.template");
 const pdfService = require("./pdf.service");
 const emailService = require("./email.service");
+const organizationWallet = require("./organizationWallet.service");
+const collegeWallet = require("./collegeWallet.service");
+const departmentWallet = require("./departmentWallet.service");
+const feeService = require("./fee.service");
 
 /**
  * Initialize a payment
  */
 exports.initialize = async (paymentData) => {
 
-    // Validate organization
-    const organization = await prisma.organization.findUnique({
-        where: {
-            id: paymentData.organizationId
-        }
-    });
-
-    if (!organization) {
-        throw new Error("Invalid organization.");
-    }
-
-    // Validate department (optional)
-    if (paymentData.departmentId) {
-
-        const department = await prisma.department.findFirst({
-            where: {
-                id: paymentData.departmentId,
-                organizationId: paymentData.organizationId
-            }
-        });
-
-        if (!department) {
-            throw new Error("Invalid department.");
-        }
-
-    }
-
-    // Validate payment type
     const paymentType = await prisma.paymentType.findUnique({
         where: {
             id: paymentData.paymentTypeId
@@ -48,11 +24,40 @@ exports.initialize = async (paymentData) => {
         throw new Error("Invalid payment type.");
     }
 
-    // Ensure payment type belongs to organization
-    if (paymentType.organizationId !== paymentData.organizationId) {
-        throw new Error("Payment type does not belong to the selected organization.");
+    const organizationId = paymentType.organizationId;
+
+    const collegeId = paymentType.collegeId || null;
+
+    const departmentId = paymentType.departmentId || null;
+
+    // Validate organization
+    const organization = await prisma.organization.findUnique({
+    where: {
+        id: organizationId
+    }
+        });
+
+    if (!organization) {
+    throw new Error("Invalid organization.");
     }
 
+    // Validate department (optional)
+    if (departmentId) {
+
+    const department = await prisma.department.findFirst({
+        where: {
+            id: departmentId,
+            organizationId
+        }
+    });
+
+    if (!department) {
+        throw new Error("Invalid department.");
+    }
+
+}
+
+    
     // Validate amount
     if (paymentType.defaultAmount == null) {
         throw new Error("This payment type has no configured amount.");
@@ -69,7 +74,19 @@ exports.initialize = async (paymentData) => {
         throw new Error("No active academic session.");
     }
 
-    const amount = paymentType.defaultAmount;
+    
+
+    const pricing =
+    await feeService.calculate(
+        paymentType.defaultAmount
+    );
+
+    const amount = pricing.amount;
+    const platformFee = pricing.fee;
+    const grossAmount = pricing.total;
+    const netAmount = Number(
+    (grossAmount - platformFee).toFixed(2)
+    );
 
     const crypto = require("crypto");
 
@@ -78,47 +95,55 @@ const reference = `TKT9JA-${crypto.randomUUID()}`;
     // Create pending transaction
     await prisma.transaction.create({
 
-        data: {
+    data: {
 
-            receiptId: generateReceiptId(),
+        receiptId: generateReceiptId(),
 
-            reference,
+        reference,
 
-            payerName: paymentData.payerName,
+        payerName: paymentData.payerName,
 
-            email: paymentData.email,
+        email: paymentData.email,
 
-            phone: paymentData.phone || null,
+        phone: paymentData.phone || null,
 
-            matricNumber: paymentData.matricNumber || null,
+        matricNumber: paymentData.matricNumber || null,
 
-            level: paymentData.level || null,
+        level: paymentData.level || null,
 
-            amount,
+        amount,
 
-            currency: "NGN",
+        platformFee,
 
-            paymentStatus: "pending",
+        grossAmount,
 
-            description: paymentType.title,
+        netAmount,
 
-            organizationId: paymentData.organizationId,
+        currency: "NGN",
 
-            departmentId: paymentData.departmentId || null,
+        paymentStatus: "PENDING",
 
-            paymentTypeId: paymentData.paymentTypeId,
+        description: paymentType.title,
 
-            sessionId: session.id
+        organizationId,
 
-        }
+        collegeId,
 
-    });
+        departmentId,
+
+        paymentTypeId: paymentData.paymentTypeId,
+
+        sessionId: session.id
+
+    }
+
+});
 
     const payload = {
 
         email: paymentData.email,
 
-        amount: String(amount),
+        amount: String(grossAmount),
 
         currency: "NGN",
 
@@ -150,7 +175,21 @@ const reference = `TKT9JA-${crypto.randomUUID()}`;
 
         );
 
-        return response.data;
+        return {
+
+    ...response.data,
+
+    pricing: {
+
+        amount,
+
+        platformFee,
+
+        grossAmount
+
+    }
+
+};
 
     } catch (error) {
 
@@ -165,7 +204,7 @@ const reference = `TKT9JA-${crypto.randomUUID()}`;
 
             data: {
 
-                paymentStatus: "failed"
+                paymentStatus: "FAILED"
 
             }
 
@@ -234,34 +273,65 @@ exports.completePayment = async (reference, verification) => {
     }
 
     // Already processed
-    if (
-        existing.paymentStatus === "successful" &&
-        existing.receiptSent
-    ) {
-        return existing;
+    if (existing.paymentStatus === "SUCCESSFUL") {
+
+    return existing;
+
+}
+
+    const transaction = await prisma.transaction.update({
+
+    where: {
+        reference
+    },
+
+    data: {
+
+        paymentStatus: "SUCCESSFUL",
+
+        paymentDate: new Date(),
+
+        paymentMethod:
+            verification.data.channel || "BudPay"
+
     }
 
-    await prisma.transaction.update({
-        where: {
-            reference
-        },
-        data: {
-            paymentStatus: "successful",
-            paymentDate: new Date(),
-            paymentMethod: verification.data.channel || "BudPay"
-        }
-    });
+});
+
+if (transaction.departmentId) {
+
+    await departmentWallet.credit(
+        transaction.departmentId,
+        Number(transaction.netAmount)
+    );
+
+} else if (transaction.collegeId) {
+
+    await collegeWallet.credit(
+        transaction.collegeId,
+        Number(transaction.netAmount)
+    );
+
+} else {
+
+    await organizationWallet.credit(
+        transaction.organizationId,
+        Number(transaction.netAmount)
+    );
+
+}
 
     const receipt = await prisma.transaction.findUnique({
         where: {
             reference
         },
         include: {
-            organization: true,
-            department: true,
-            paymentType: true,
-            session: true
-        }
+    organization: true,
+    college: true,
+    department: true,
+    paymentType: true,
+    session: true
+}
     });
 
     if (!receipt.receiptSent) {

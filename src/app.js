@@ -16,8 +16,12 @@ const organizationRoutes = require("./routes/organization.routes");
 const departmentRoutes = require("./routes/department.routes");
 const paymentTypeRoutes = require("./routes/paymentType.routes");
 const sessionRoutes = require("./routes/session.routes");
-
-
+const authRoutes = require('./auth/auth.routes');
+const collegeRoutes = require("./routes/college.routes");
+const bankAccountRoutes = require("./routes/bankAccount.routes");
+const withdrawalRoutes = require("./routes/withdrawal.routes");
+const dashboardRoutes = require("./routes/dashboard.routes");
+const organizationDashboardRoutes = require("./routes/organizationDashboard.routes");
 
 const app = express();
 
@@ -38,6 +42,27 @@ app.use("/api/organizations", organizationRoutes);
 app.use("/api/departments", departmentRoutes);
 app.use("/api/payment-types", paymentTypeRoutes);
 app.use("/api/sessions", sessionRoutes);
+app.use('/api/auth', authRoutes);
+app.use("/api/colleges", collegeRoutes);
+app.use("/api/bank-accounts", bankAccountRoutes);
+app.use("/api/withdrawals", withdrawalRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/organization-dashboard", organizationDashboardRoutes);
+
+app.use(
+    "/api/organization-withdrawals",
+    require("./routes/organizationWithdrawal.routes")
+);
+
+app.use(
+    "/api/college-withdrawals",
+    require("./routes/collegeWithdrawal.routes")
+);
+
+app.use(
+    "/api/department-withdrawals",
+    require("./routes/departmentWithdrawal.routes")
+);
 
 app.get("/", (req, res) => {
     res.json({

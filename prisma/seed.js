@@ -112,8 +112,36 @@ async function main() {
         }
     });
 
+    await prisma.platformSettings.upsert({
+
+    where: {
+        id: "default-platform"
+    },
+
+    update: {},
+
+    create: {
+
+        id: "default-platform",
+
+        feeType: "PERCENTAGE",
+
+        feeValue: 7.05,
+
+        currency: "NGN",
+
+        supportEmail: "support@ticket9ja.com",
+
+        receiptPrefix: "TKT"
+
+    }
+
+});
+
     console.log("✅ Database seeded successfully.");
 }
+
+
 
 main()
     .then(async () => {

@@ -1,20 +1,33 @@
-const express = require("express");
-const router = express.Router();
-const { PrismaClient } = require("@prisma/client");
+const router = require("express").Router();
 
-const prisma = new PrismaClient();
+const controller =
+require("../controllers/department.controller");
 
-router.get("/", async (req, res) => {
-  const { organizationId } = req.query;
+const auth =
+require("../auth/auth.middleware");
 
-  const departments = await prisma.department.findMany({
-    where: {
-      organizationId,
-      isActive: true
-    }
-  });
+const permit =
+require("../auth/permission.middleware");
 
-  res.json({ departments });
-});
+router.use(auth);
+
+router.use(
+    permit("SUPER_ADMIN")
+);
+
+router.get("/", controller.getAll);
+
+router.get(
+    "/college/:collegeId",
+    controller.getByCollege
+);
+
+router.get("/:id", controller.getById);
+
+router.post("/", controller.create);
+
+router.put("/:id", controller.update);
+
+router.delete("/:id", controller.remove);
 
 module.exports = router;

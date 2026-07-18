@@ -8,161 +8,281 @@ datasource db {
 }
 
 model Organization {
-
-  id              String   @id @default(cuid())
-
+  id              String           @id @default(cuid())
   name            String
-
-  shortName       String   @unique
-
+  shortName       String           @unique
   logo            String?
-
   email           String?
-
   phone           String?
-
   address         String?
-
-  primaryColor    String? @default("#0F172A")
-
-  isActive        Boolean @default(true)
-
-  createdAt       DateTime @default(now())
-
-  updatedAt       DateTime @updatedAt
-
+  primaryColor    String?          @default("#0F172A")
+  isActive        Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  bankAccounts    BankAccount[]
+  colleges        College[]
   departments     Department[]
-
+  invitations     Invitation[]
   paymentTypes    PaymentType[]
-
   receiptTemplate ReceiptTemplate?
-
   transactions    Transaction[]
+  users           User[]
+  Wallet          Wallet?
+  withdrawals     Withdrawal[]
 }
 
 model Department {
-
-  id String @id @default(cuid())
-
-  name String
-
+  id             String        @id @default(cuid())
+  name           String
   organizationId String
-
-  organization Organization @relation(fields: [organizationId], references: [id])
-
-  isActive Boolean @default(true)
-
-  createdAt DateTime @default(now())
-
-  updatedAt DateTime @updatedAt
-
-  transactions Transaction[]
+  collegeId      String?
+  isActive       Boolean       @default(true)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  college        College?      @relation(fields: [collegeId], references: [id])
+  organization   Organization  @relation(fields: [organizationId], references: [id])
+  invitations    Invitation[]
+  paymentTypes   PaymentType[]
+  transactions   Transaction[]
+  users          User[]
 }
 
 model AcademicSession {
-
-  id String @id @default(cuid())
-
-  name String @unique
-
-  active Boolean @default(false)
-
-  createdAt DateTime @default(now())
-
+  id           String        @id @default(cuid())
+  name         String        @unique
+  active       Boolean       @default(false)
+  createdAt    DateTime      @default(now())
   transactions Transaction[]
 }
 
 model PaymentType {
-
-  id String @id @default(cuid())
-
-  title String
-
-  description String?
-
-  defaultAmount Float?
-
-  organizationId String
-
-  organization Organization @relation(fields: [organizationId], references: [id])
-
-  isActive Boolean @default(true)
-
-  createdAt DateTime @default(now())
-
-  updatedAt DateTime @updatedAt
-
-  transactions Transaction[]
+  id                String        @id @default(cuid())
+  title             String
+  description       String?
+  defaultAmount     Float
+  organizationId    String
+  collegeId         String?
+  departmentId      String?
+  isActive          Boolean       @default(true)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  allowCustomAmount Boolean       @default(false)
+  createdBy         String?
+  dueDate           DateTime?
+  maximumAmount     Float?
+  minimumAmount     Float?
+  college           College?      @relation(fields: [collegeId], references: [id])
+  department        Department?   @relation(fields: [departmentId], references: [id])
+  organization      Organization  @relation(fields: [organizationId], references: [id])
+  transactions      Transaction[]
 }
 
 model ReceiptTemplate {
-
-  id String @id @default(cuid())
-
-  organizationId String @unique
-
-  logo String?
-
-  footerText String?
-
-  watermark String?
-
-  primaryColor String @default("#0F172A")
-
-  secondaryColor String @default("#F8FAFC")
-
-  organization Organization @relation(fields: [organizationId], references: [id])
+  id             String       @id @default(cuid())
+  organizationId String       @unique
+  logo           String?
+  footerText     String?
+  watermark      String?
+  primaryColor   String       @default("#0F172A")
+  secondaryColor String       @default("#F8FAFC")
+  organization   Organization @relation(fields: [organizationId], references: [id])
 }
 
 model Transaction {
-
-  id String @id @default(cuid())
-
-  receiptId String @unique
-
-  reference String @unique
-
-  payerName String
-
-  email String
-
-  phone String?
-
-  matricNumber String?
-
-  level String?
-
-  amount Float
-
-  currency String
-
-  paymentStatus String
-
-  paymentMethod String?
-
-  description String?
-
-  paymentDate DateTime?
-
-  receiptSent Boolean @default(false)
-
+  id             String          @id @default(cuid())
+  receiptId      String          @unique
+  reference      String          @unique
+  payerName      String
+  email          String
+  phone          String?
+  matricNumber   String?
+  level          String?
+  amount         Decimal         @db.Decimal(18, 2)
+  platformFee    Decimal         @default(0) @db.Decimal(18, 2)
+  grossAmount    Decimal         @db.Decimal(18, 2)
+  netAmount      Decimal         @db.Decimal(18, 2)
+  currency       String
+  paymentStatus  PaymentStatus   @default(PENDING)
+  paymentMethod  PaymentMethod?
+  description    String?
+  paymentDate    DateTime?
+  verifiedAt     DateTime?
+  verifiedBy     String?
+  receiptSent    Boolean         @default(false)
   organizationId String
+  collegeId      String?
+  departmentId   String?
+  paymentTypeId  String
+  sessionId      String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  college        College?        @relation(fields: [collegeId], references: [id])
+  department     Department?     @relation(fields: [departmentId], references: [id])
+  organization   Organization    @relation(fields: [organizationId], references: [id])
+  paymentType    PaymentType     @relation(fields: [paymentTypeId], references: [id])
+  session        AcademicSession @relation(fields: [sessionId], references: [id])
 
-  departmentId String?
+  @@index([email])
+  @@index([reference])
+  @@index([paymentStatus])
+  @@index([organizationId])
+  @@index([createdAt])
+}
 
-  paymentTypeId String
+model User {
+  id             String        @id @default(cuid())
+  fullName       String
+  email          String        @unique
+  password       String
+  phone          String?
+  role           UserRole
+  organizationId String?
+  collegeId      String?
+  departmentId   String?
+  active         Boolean       @default(true)
+  lastLogin      DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  college        College?      @relation(fields: [collegeId], references: [id])
+  department     Department?   @relation(fields: [departmentId], references: [id])
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+}
 
-  sessionId String
+model Withdrawal {
+  id             String           @id @default(cuid())
+  walletId       String
+  organizationId String
+  amount         Decimal          @db.Decimal(18, 2)
+  bankName       String
+  accountNumber  String
+  accountName    String
+  status         WithdrawalStatus @default(PENDING)
+  requestedBy    String
+  approvedBy     String?
+  requestedAt    DateTime         @default(now())
+  approvedAt     DateTime?
+  paidAt         DateTime?
+  organization   Organization     @relation(fields: [organizationId], references: [id])
+  Wallet         Wallet           @relation(fields: [walletId], references: [id])
+}
 
-  organization Organization @relation(fields:[organizationId], references:[id])
+model PlatformSettings {
+  id            String   @id @default(cuid())
+  feeType       FeeType
+  feeValue      Decimal  @db.Decimal(18, 2)
+  currency      String   @default("NGN")
+  supportEmail  String?
+  receiptPrefix String   @default("TKT")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
 
-  department Department? @relation(fields:[departmentId], references:[id])
+model College {
+  id             String        @id @default(cuid())
+  name           String
+  shortName      String?
+  email          String?
+  phone          String?
+  logo           String?
+  active         Boolean       @default(true)
+  organizationId String
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  organization   Organization  @relation(fields: [organizationId], references: [id])
+  departments    Department[]
+  invitations    Invitation[]
+  paymentTypes   PaymentType[]
+  transactions   Transaction[]
+  users          User[]
 
-  paymentType PaymentType @relation(fields:[paymentTypeId], references:[id])
+  @@unique([organizationId, name])
+}
 
-  session AcademicSession @relation(fields:[sessionId], references:[id])
+model BankAccount {
+  id             String       @id @default(cuid())
+  organizationId String
+  bankName       String
+  accountName    String
+  accountNumber  String
+  isDefault      Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+}
 
+model Invitation {
+  id             String        @id @default(cuid())
+  email          String
+  token          String        @unique
+  role           UserRole
+  organizationId String?
+  collegeId      String?
+  departmentId   String?
+  expiresAt      DateTime
+  accepted       Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+  college        College?      @relation(fields: [collegeId], references: [id])
+  department     Department?   @relation(fields: [departmentId], references: [id])
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String
+  entity    String
+  entityId  String?
+  metadata  Json?
   createdAt DateTime @default(now())
+}
 
-  updatedAt DateTime @updatedAt
+model Wallet {
+  id               String       @id
+  organizationId   String       @unique
+  availableBalance Decimal      @default(0) @db.Decimal(18, 2)
+  pendingBalance   Decimal      @default(0) @db.Decimal(18, 2)
+  reservedBalance  Decimal      @default(0) @db.Decimal(18, 2)
+  withdrawnBalance Decimal      @default(0) @db.Decimal(18, 2)
+  totalRevenue     Decimal      @default(0) @db.Decimal(18, 2)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime
+  Organization     Organization @relation(fields: [organizationId], references: [id])
+  Withdrawal       Withdrawal[]
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ORGANIZATION_ADMIN
+  COLLEGE_ADMIN
+  DEPARTMENT_ADMIN
+  FINANCE_OFFICER
+  VIEWER
+}
+
+enum WithdrawalStatus {
+  PENDING
+  APPROVED
+  PROCESSING
+  PAID
+  REJECTED
+}
+
+enum FeeType {
+  FIXED
+  PERCENTAGE
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESSFUL
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CARD
+  BANK_TRANSFER
+  USSD
+  WALLET
+  BUDPAY
 }

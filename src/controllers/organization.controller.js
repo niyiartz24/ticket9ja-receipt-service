@@ -1,16 +1,12 @@
-const prisma = require("../config/prisma");
+const organizationService =
+require("../services/organization.service");
 
-exports.getOrganizations = async (req, res) => {
+exports.getAll = async (req, res) => {
+
     try {
 
-        const organizations = await prisma.organization.findMany({
-            where: {
-                isActive: true
-            },
-            orderBy: {
-                name: "asc"
-            }
-        });
+        const organizations =
+            await organizationService.getAll();
 
         res.json({
             success: true,
@@ -25,4 +21,119 @@ exports.getOrganizations = async (req, res) => {
         });
 
     }
+
+};
+
+exports.getById = async (req, res) => {
+
+    try {
+
+        const organization =
+            await organizationService.getById(
+                req.params.id
+            );
+
+        res.json({
+            success: true,
+            organization
+        });
+
+    } catch (err) {
+
+        res.status(404).json({
+            success: false,
+            message: err.message
+        });
+
+    }
+
+};
+
+exports.create = async (req, res) => {
+
+    try {
+
+        const organization =
+            await organizationService.create(req.body);
+
+        res.status(201).json({
+
+            success: true,
+
+            organization
+
+        });
+
+    } catch (err) {
+
+        res.status(400).json({
+
+            success: false,
+
+            message: err.message
+
+        });
+
+    }
+
+};
+
+exports.update = async (req, res) => {
+
+    try {
+
+        const organization =
+            await organizationService.update(
+                req.params.id,
+                req.body
+            );
+
+        res.json({
+
+            success: true,
+
+            organization
+
+        });
+
+    } catch (err) {
+
+        res.status(400).json({
+
+            success: false,
+
+            message: err.message
+
+        });
+
+    }
+
+};
+
+exports.remove = async (req, res) => {
+
+    try {
+
+        await organizationService.remove(req.params.id);
+
+        res.json({
+
+            success: true,
+
+            message: "Organization deactivated."
+
+        });
+
+    } catch (err) {
+
+        res.status(400).json({
+
+            success: false,
+
+            message: err.message
+
+        });
+
+    }
+
 };
