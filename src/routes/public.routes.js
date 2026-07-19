@@ -17,7 +17,7 @@ router.get(
 );
 
 router.get(
-    "/payment-types",
+    "/organizations/:organizationId/payment-types",
     publicController.paymentTypes
 );
 

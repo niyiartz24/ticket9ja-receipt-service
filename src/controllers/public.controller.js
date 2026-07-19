@@ -79,33 +79,16 @@ exports.departments = async (req, res) => {
 
 };
 
-exports.paymentTypes =
-async (req, res) => {
-
-    const {
-
-        organizationId,
-
-        collegeId,
-
-        departmentId
-
-    } = req.query;
+exports.paymentTypes = async (req, res) => {
 
     const paymentTypes =
         await prisma.paymentType.findMany({
 
             where: {
 
-                isActive: true,
+                organizationId: req.params.organizationId,
 
-                organizationId,
-
-                collegeId:
-                    collegeId || null,
-
-                departmentId:
-                    departmentId || null
+                isActive: true
 
             },
 

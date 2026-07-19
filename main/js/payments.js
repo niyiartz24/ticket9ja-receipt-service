@@ -110,19 +110,22 @@
 
     try {
       const [
-        orgData,
-        paymentTypesData,
-        departmentsData,
-        sessionsData
-      ] = await Promise.all([
-        apiGet("/organizations"),
-        apiGet(`/payment-types/${organizationId}`),
-        optionalGet(`/departments?organizationId=${encodeURIComponent(organizationId)}`),
-        optionalGet("/sessions")
-      ]);
+    orgData,
+    paymentTypesData,
+    collegesData,
+    departmentsData,
+    sessionsData
+] = await Promise.all([
+    apiGet("/public/organizations"),
+    apiGet(`/public/organizations/${organizationId}/payment-types`),
+    optionalGet(`/public/organizations/${organizationId}/colleges`),
+    optionalGet(`/public/organizations/${organizationId}/departments`),
+    optionalGet("/public/sessions")
+]);
 
       const organizations = normalizeList(orgData, ["organizations"]);
       const paymentTypes = normalizeList(paymentTypesData, ["paymentTypes"]);
+      const colleges = normalizeList(collegesData, ["colleges"]);
       const departments = normalizeList(departmentsData, ["departments"]);
       const sessions = normalizeList(sessionsData, ["sessions"]);
 
@@ -399,6 +402,8 @@
         .value.trim(),
       level: document.getElementById("level").value.trim(),
       organizationId,
+      collegeId:
+    selectedCollegeId || null,
       departmentId: departmentField.hidden
         ? ""
         : departmentSelect.value,
@@ -409,9 +414,9 @@
 
     try {
       const result = await apiPost(
-        "/payments/initiate",
-        payload
-      );
+    "/public/payments/initiate",
+    payload
+);
 
       if (result && result.status === false) {
         throw new Error(

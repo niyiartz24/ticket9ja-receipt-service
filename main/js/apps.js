@@ -280,7 +280,9 @@ function describeError(error) {
     clearAlert(landingAlert);
 
     try {
-      const data = await apiGet(`/payment-types/${organizationId}`);
+      const data = await apiGet(
+    `/public/organizations/${organizationId}/payment-types`
+);
       const paymentTypes = normalizeList(data, ["paymentTypes"]);
       renderPaymentTypes(paymentTypes, organizationId);
     } catch (error) {
@@ -327,7 +329,7 @@ function describeError(error) {
     clearAlert(landingAlert);
 
     try {
-      const data = await apiGet("/organizations");
+      const data = await apiGet("/public/organizations");
       const organizations = normalizeList(data, ["organizations"]);
 
       if (!organizations.length) {
