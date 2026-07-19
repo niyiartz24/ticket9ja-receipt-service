@@ -31,7 +31,7 @@ exports.create = async (data) => {
 
 exports.list = async (user, pageSize = 5) => {
 
-    const where = {};
+    const conditions = [];
 
     switch (user.role) {
 
@@ -39,35 +39,37 @@ exports.list = async (user, pageSize = 5) => {
             break;
 
         case "ORGANIZATION_ADMIN":
-            where.organizationId =
-                user.organizationId;
+            conditions.push({
+                organizationId: user.organizationId
+            });
             break;
 
         case "COLLEGE_ADMIN":
-            where.collegeId =
-                user.collegeId;
+            conditions.push({
+                collegeId: user.collegeId
+            });
             break;
 
         case "DEPARTMENT_ADMIN":
-            where.departmentId =
-                user.departmentId;
+            conditions.push({
+                departmentId: user.departmentId
+            });
             break;
 
     }
 
     if (user.id) {
 
-        where.OR = [
-
-            where,
-
-            {
-                userId: user.id
-            }
-
-        ];
+        conditions.push({
+            userId: user.id
+        });
 
     }
+
+    const where =
+        conditions.length > 0
+            ? { OR: conditions }
+            : {};
 
     return prisma.notification.findMany({
 

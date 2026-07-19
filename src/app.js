@@ -26,6 +26,8 @@ const publicRoutes = require("./routes/public.routes");
 const transactionRoutes = require("./routes/transaction.routes");
 const adminRoutes = require("./routes/admin.routes");
 const notificationRoutes = require("./routes/notification.routes");
+const platformRoutes = require("./routes/platform.routes");
+const invitationRoutes = require("./routes/invitation.routes");
 
 const app = express();
 
@@ -86,6 +88,16 @@ app.use(
 app.use(
     "/api/notifications",
     notificationRoutes
+);
+
+app.use(
+    "/api/platform",
+    platformRoutes
+);
+
+app.use(
+    "/api/invitations",
+    invitationRoutes
 );
 
 app.get("/", (req, res) => {

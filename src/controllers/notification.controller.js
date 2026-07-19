@@ -21,15 +21,17 @@ exports.list = async (req,res)=>{
 
     }catch(err){
 
-        res.status(500).json({
+    console.error(err);
 
-            success:false,
+    res.status(500).json({
 
-            message:err.message
+        success:false,
 
-        });
+        message:err.message
 
-    }
+    });
+
+}
 
 };
 

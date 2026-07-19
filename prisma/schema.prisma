@@ -29,22 +29,24 @@ model Organization {
   users           User[]
   Wallet          Wallet?
   withdrawals     Withdrawal[]
+  notifications   Notification[]
 }
 
 model Department {
-  id             String        @id @default(cuid())
+  id             String         @id @default(cuid())
   name           String
   organizationId String
   collegeId      String?
-  isActive       Boolean       @default(true)
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  college        College?      @relation(fields: [collegeId], references: [id])
-  organization   Organization  @relation(fields: [organizationId], references: [id])
+  isActive       Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  college        College?       @relation(fields: [collegeId], references: [id])
+  organization   Organization   @relation(fields: [organizationId], references: [id])
   invitations    Invitation[]
   paymentTypes   PaymentType[]
   transactions   Transaction[]
   users          User[]
+  notifications  Notification[]
 }
 
 model AcademicSession {
@@ -146,6 +148,9 @@ model User {
   college        College?      @relation(fields: [collegeId], references: [id])
   department     Department?   @relation(fields: [departmentId], references: [id])
   organization   Organization? @relation(fields: [organizationId], references: [id])
+
+  notifications Notification[]
+  invitationId String?
 }
 
 model Withdrawal {
@@ -178,22 +183,24 @@ model PlatformSettings {
 }
 
 model College {
-  id             String        @id @default(cuid())
+  id             String         @id @default(cuid())
   name           String
   shortName      String?
   email          String?
   phone          String?
   logo           String?
-  active         Boolean       @default(true)
+  active         Boolean        @default(true)
   organizationId String
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  organization   Organization  @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  organization   Organization   @relation(fields: [organizationId], references: [id])
   departments    Department[]
   invitations    Invitation[]
   paymentTypes   PaymentType[]
   transactions   Transaction[]
   users          User[]
+  notifications  Notification[]
+  
 
   @@unique([organizationId, name])
 }
@@ -210,19 +217,31 @@ model BankAccount {
 }
 
 model Invitation {
-  id             String        @id @default(cuid())
+  id             String   @id @default(cuid())
+
   email          String
-  token          String        @unique
+  fullName       String
+
   role           UserRole
+
   organizationId String?
   collegeId      String?
   departmentId   String?
+
+  token          String   @unique
+
+  accepted       Boolean  @default(false)
+
   expiresAt      DateTime
-  accepted       Boolean       @default(false)
-  createdAt      DateTime      @default(now())
-  college        College?      @relation(fields: [collegeId], references: [id])
-  department     Department?   @relation(fields: [departmentId], references: [id])
-  organization   Organization? @relation(fields: [organizationId], references: [id])
+
+  createdAt      DateTime @default(now())
+
+  organization   Organization? @relation(fields:[organizationId], references:[id])
+  college        College? @relation(fields:[collegeId], references:[id])
+  department     Department? @relation(fields:[departmentId], references:[id])
+
+  @@index([email])
+  @@index([token])
 }
 
 model AuditLog {
@@ -247,6 +266,41 @@ model Wallet {
   updatedAt        DateTime
   Organization     Organization @relation(fields: [organizationId], references: [id])
   Withdrawal       Withdrawal[]
+}
+
+model Notification {
+  id String @id @default(cuid())
+
+  title   String
+  message String
+  type    NotificationType @default(INFO)
+
+  read Boolean @default(false)
+
+  userId         String?
+  organizationId String?
+  collegeId      String?
+  departmentId   String?
+
+  createdAt DateTime @default(now())
+
+  user         User?         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  college      College?      @relation(fields: [collegeId], references: [id], onDelete: Cascade)
+  department   Department?   @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([organizationId])
+  @@index([collegeId])
+  @@index([departmentId])
+  @@index([createdAt])
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
 }
 
 enum UserRole {

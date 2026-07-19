@@ -1,73 +1,60 @@
-const withdrawalService = require("../services/withdrawal.service");
+const organizationService =
+require("../services/organizationWithdrawal.service");
 
-exports.request = async (req, res) => {
+const collegeService =
+require("../services/collegeWithdrawal.service");
 
-    try {
+const departmentService =
+require("../services/departmentWithdrawal.service");
 
-        const withdrawal =
-            await withdrawalService.request(req.body);
-
-        return res.status(201).json({
-
-            success: true,
-
-            withdrawal
-
-        });
-
-    } catch (err) {
-
-        return res.status(400).json({
-
-            success: false,
-
-            message: err.message
-
-        });
-
-    }
-
-};
-
-exports.getPending = async (req, res) => {
+exports.getAll = async (req, res) => {
 
     try {
 
-        const withdrawals =
-            await withdrawalService.getPending();
+        const [
 
-        return res.json({
+            organizations,
 
-            success: true,
+            colleges,
 
-            withdrawals
+            departments
 
-        });
+        ] = await Promise.all([
 
-    } catch (err) {
+            organizationService.getPending(),
 
-        return res.status(500).json({
+            collegeService.getPending(),
 
-            success: false,
+            departmentService.getPending()
 
-            message: err.message
+        ]);
 
-        });
+        const withdrawals = [
 
-    }
+            ...organizations.map(x => ({
+                ...x,
+                type: "organization"
+            })),
 
-};
+            ...colleges.map(x => ({
+                ...x,
+                type: "college"
+            })),
 
-exports.getOrganizationHistory = async (req, res) => {
+            ...departments.map(x => ({
+                ...x,
+                type: "department"
+            }))
 
-    try {
+        ].sort(
 
-        const withdrawals =
-            await withdrawalService.getOrganizationHistory(
-                req.params.organizationId
-            );
+            (a, b) =>
+                new Date(b.requestedAt) -
+                new Date(a.requestedAt)
 
-        return res.json({
+        );
+
+        res.json({
 
             success: true,
 
@@ -77,7 +64,9 @@ exports.getOrganizationHistory = async (req, res) => {
 
     } catch (err) {
 
-        return res.status(500).json({
+        console.error(err);
+
+        res.status(500).json({
 
             success: false,
 
@@ -93,26 +82,67 @@ exports.approve = async (req, res) => {
 
     try {
 
-        const withdrawal =
-            await withdrawalService.approve(
+        const { type, id } = req.params;
 
-                req.params.id,
+        let result;
 
-                req.user.id
+        switch (type) {
 
-            );
+            case "organization":
+
+                result =
+                    await organizationService.approve(
+                        id,
+                        req.user.id
+                    );
+
+                break;
+
+            case "college":
+
+                result =
+                    await collegeService.approve(
+                        id,
+                        req.user.id
+                    );
+
+                break;
+
+            case "department":
+
+                result =
+                    await departmentService.approve(
+                        id,
+                        req.user.id
+                    );
+
+                break;
+
+            default:
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message: "Invalid withdrawal type."
+
+                });
+
+        }
 
         res.json({
 
             success: true,
 
-            withdrawal
+            withdrawal: result
 
         });
 
     } catch (err) {
 
-        res.status(400).json({
+        console.error(err);
+
+        res.status(500).json({
 
             success: false,
 
@@ -128,26 +158,67 @@ exports.reject = async (req, res) => {
 
     try {
 
-        const withdrawal =
-            await withdrawalService.reject(
+        const { type, id } = req.params;
 
-                req.params.id,
+        let result;
 
-                req.user.id
+        switch (type) {
 
-            );
+            case "organization":
+
+                result =
+                    await organizationService.reject(
+                        id,
+                        req.user.id
+                    );
+
+                break;
+
+            case "college":
+
+                result =
+                    await collegeService.reject(
+                        id,
+                        req.user.id
+                    );
+
+                break;
+
+            case "department":
+
+                result =
+                    await departmentService.reject(
+                        id,
+                        req.user.id
+                    );
+
+                break;
+
+            default:
+
+                return res.status(400).json({
+
+                    success: false,
+
+                    message: "Invalid withdrawal type."
+
+                });
+
+        }
 
         res.json({
 
             success: true,
 
-            withdrawal
+            withdrawal: result
 
         });
 
     } catch (err) {
 
-        res.status(400).json({
+        console.error(err);
+
+        res.status(500).json({
 
             success: false,
 
@@ -158,87 +229,3 @@ exports.reject = async (req, res) => {
     }
 
 };
-
-exports.recentTransactions = async () => {
-
-    return prisma.transaction.findMany({
-
-        take: 10,
-
-        orderBy: {
-
-            createdAt: "desc"
-
-        },
-
-        include: {
-
-            organization: true,
-
-            paymentType: true
-
-        }
-
-    });
-
-};
-
-exports.recentWithdrawals = async () => {
-
-    return prisma.withdrawal.findMany({
-
-        take: 10,
-
-        orderBy: {
-
-            requestedAt: "desc"
-
-        },
-
-        include: {
-
-            organization: true
-
-        }
-
-    });
-
-};
-
-exports.monthlyRevenue = async () => {
-
-    const now = new Date();
-
-    const start = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        1
-    );
-
-    const transactions =
-        await prisma.transaction.findMany({
-
-            where: {
-
-                paymentStatus: "successful",
-
-                paymentDate: {
-
-                    gte: start
-
-                }
-
-            }
-
-        });
-
-    return transactions.reduce(
-
-        (sum, tx) => sum + tx.platformFee,
-
-        0
-
-    );
-
-};
-
