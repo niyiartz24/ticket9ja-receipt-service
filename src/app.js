@@ -22,6 +22,7 @@ const bankAccountRoutes = require("./routes/bankAccount.routes");
 const withdrawalRoutes = require("./routes/withdrawal.routes");
 const dashboardRoutes = require("./routes/dashboard.routes");
 const organizationDashboardRoutes = require("./routes/organizationDashboard.routes");
+const publicRoutes = require("./routes/public.routes");
 
 const app = express();
 
@@ -62,6 +63,11 @@ app.use(
 app.use(
     "/api/department-withdrawals",
     require("./routes/departmentWithdrawal.routes")
+);
+
+app.use(
+    "/api/public",
+    publicRoutes
 );
 
 app.get("/", (req, res) => {
