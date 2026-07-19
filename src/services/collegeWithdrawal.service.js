@@ -1,4 +1,5 @@
 const prisma = require("../config/prisma");
+const notificationService = require("./notification.service");
 
 exports.requestWithdrawal = async (
     collegeId,
@@ -57,27 +58,44 @@ exports.requestWithdrawal = async (
 
     });
 
-    return prisma.collegeWithdrawal.create({
+    const withdrawal =
+await prisma.collegeWithdrawal.create({
 
-        data: {
+    data: {
 
-            collegeId,
+        collegeId,
 
-            walletId: wallet.id,
+        walletId: wallet.id,
 
-            amount,
+        amount,
 
-            bankName: bank.bankName,
+        bankName: bank.bankName,
 
-            accountNumber: bank.accountNumber,
+        accountNumber: bank.accountNumber,
 
-            accountName: bank.accountName,
+        accountName: bank.accountName,
 
-            requestedBy: collegeId
+        requestedBy: collegeId
 
-        }
+    }
 
-    });
+});
+
+await notificationService.create({
+
+    type: "WARNING",
+
+    title: "Withdrawal Requested",
+
+    message: `A withdrawal request of ₦${amount} has been submitted.`,
+
+    organizationId: withdrawal.organizationId,
+
+    collegeId: withdrawal.collegeId
+
+});
+
+return withdrawal;
 
 };
 
@@ -171,25 +189,42 @@ exports.approve = async (
 
     });
 
-    return prisma.collegeWithdrawal.update({
+    const approved =
+await prisma.collegeWithdrawal.update({
 
-        where: {
+    where: {
 
-            id: withdrawalId
+        id: withdrawalId
 
-        },
+    },
 
-        data: {
+    data: {
 
-            status: "APPROVED",
+        status: "APPROVED",
 
-            approvedBy: adminId,
+        approvedBy: adminId,
 
-            approvedAt: new Date()
+        approvedAt: new Date()
 
-        }
+    }
 
-    });
+});
+
+await notificationService.create({
+
+    type: "SUCCESS",
+
+    title: "Withdrawal Approved",
+
+    message: `Withdrawal of ₦${withdrawal.amount} has been approved.`,
+
+    organizationId: withdrawal.organizationId,
+
+    collegeId: withdrawal.collegeId
+
+});
+
+return approved;
 
 };
 
@@ -233,25 +268,42 @@ exports.reject = async (
 
     });
 
-    return prisma.collegeWithdrawal.update({
+    const rejected =
+await prisma.collegeWithdrawal.update({
 
-        where: {
+    where: {
 
-            id: withdrawalId
+        id: withdrawalId
 
-        },
+    },
 
-        data: {
+    data: {
 
-            status: "REJECTED",
+        status: "REJECTED",
 
-            approvedBy: adminId,
+        approvedBy: adminId,
 
-            approvedAt: new Date()
+        approvedAt: new Date()
 
-        }
+    }
 
-    });
+});
+
+await notificationService.create({
+
+    type: "ERROR",
+
+    title: "Withdrawal Rejected",
+
+    message: `Withdrawal of ₦${withdrawal.amount} has been rejected.`,
+
+    organizationId: withdrawal.organizationId,
+
+    collegeId: withdrawal.collegeId
+
+});
+
+return rejected;
 
 };
 

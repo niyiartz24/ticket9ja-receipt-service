@@ -1,127 +1,50 @@
-const dashboardService =
-    require("../services/dashboard.service");
+const dashboardService = require("../services/dashboard.service");
 
-exports.overview = async (req, res) => {
+exports.summary = async (req, res) => {
 
     try {
 
-        const dashboard =
-            await dashboardService.superDashboard();
+        const data =
+            await dashboardService.summary();
 
         res.json({
-
             success: true,
-
-            dashboard
-
+            data
         });
 
-    }
-
-    catch (err) {
+    } catch (err) {
 
         res.status(500).json({
-
-            success: false,
-
-            message: err.message
-
+            success:false,
+            message:err.message
         });
 
     }
 
 };
 
-exports.recentTransactions = async (req, res) => {
+exports.revenueSeries = async (req,res)=>{
 
-    try {
+    try{
 
-        const transactions =
-            await dashboardService.recentTransactions();
+        const days =
+            Number(req.query.days || 30);
+
+        const data =
+            await dashboardService.revenueSeries(days);
 
         res.json({
-
-            success: true,
-
-            transactions
-
+            success:true,
+            data
         });
 
-    }
-
-    catch (err) {
+    }catch(err){
 
         res.status(500).json({
-
-            success: false,
-
-            message: err.message
-
+            success:false,
+            message:err.message
         });
 
     }
 
 };
-
-exports.recentWithdrawals = async (req, res) => {
-
-    try {
-
-        const withdrawals =
-            await dashboardService.recentWithdrawals();
-
-        res.json({
-
-            success: true,
-
-            withdrawals
-
-        });
-
-    }
-
-    catch (err) {
-
-        res.status(500).json({
-
-            success: false,
-
-            message: err.message
-
-        });
-
-    }
-
-};
-
-exports.monthlyRevenue = async (req, res) => {
-
-    try {
-
-        const revenue =
-            await dashboardService.monthlyRevenue();
-
-        res.json({
-
-            success: true,
-
-            revenue
-
-        });
-
-    }
-
-    catch (err) {
-
-        res.status(500).json({
-
-            success: false,
-
-            message: err.message
-
-        });
-
-    }
-
-};
-

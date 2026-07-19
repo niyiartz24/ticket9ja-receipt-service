@@ -57,27 +57,42 @@ exports.requestWithdrawal = async (
 
     });
 
-    return prisma.organizationWithdrawal.create({
+    const withdrawal =
+await prisma.organizationWithdrawal.create({
 
-        data: {
+    data: {
 
-            organizationId,
+        organizationId,
 
-            walletId: wallet.id,
+        walletId: wallet.id,
 
-            amount,
+        amount,
 
-            bankName: bank.bankName,
+        bankName: bank.bankName,
 
-            accountNumber: bank.accountNumber,
+        accountNumber: bank.accountNumber,
 
-            accountName: bank.accountName,
+        accountName: bank.accountName,
 
-            requestedBy: organizationId
+        requestedBy: organizationId
 
-        }
+    }
 
-    });
+});
+
+await notificationService.create({
+
+    type: "WARNING",
+
+    title: "Withdrawal Requested",
+
+    message: `A withdrawal request of ₦${amount} has been submitted.`,
+
+    organizationId
+
+});
+
+return withdrawal;
 
 };
 
@@ -171,25 +186,40 @@ exports.approve = async (
 
     });
 
-    return prisma.organizationWithdrawal.update({
+    const approved =
+await prisma.organizationWithdrawal.update({
 
-        where: {
+    where: {
 
-            id: withdrawalId
+        id: withdrawalId
 
-        },
+    },
 
-        data: {
+    data: {
 
-            status: "APPROVED",
+        status: "APPROVED",
 
-            approvedBy: adminId,
+        approvedBy: adminId,
 
-            approvedAt: new Date()
+        approvedAt: new Date()
 
-        }
+    }
 
-    });
+});
+
+await notificationService.create({
+
+    type: "SUCCESS",
+
+    title: "Withdrawal Approved",
+
+    message: `Withdrawal of ₦${withdrawal.amount} has been approved.`,
+
+    organizationId: withdrawal.organizationId
+
+});
+
+return approved;
 
 };
 
@@ -233,25 +263,40 @@ exports.reject = async (
 
     });
 
-    return prisma.organizationWithdrawal.update({
+    const rejected =
+await prisma.organizationWithdrawal.update({
 
-        where: {
+    where: {
 
-            id: withdrawalId
+        id: withdrawalId
 
-        },
+    },
 
-        data: {
+    data: {
 
-            status: "REJECTED",
+        status: "REJECTED",
 
-            approvedBy: adminId,
+        approvedBy: adminId,
 
-            approvedAt: new Date()
+        approvedAt: new Date()
 
-        }
+    }
 
-    });
+});
+
+await notificationService.create({
+
+    type: "ERROR",
+
+    title: "Withdrawal Rejected",
+
+    message: `Withdrawal of ₦${withdrawal.amount} has been rejected.`,
+
+    organizationId: withdrawal.organizationId
+
+});
+
+return rejected;
 
 };
 

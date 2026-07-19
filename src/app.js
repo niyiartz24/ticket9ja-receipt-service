@@ -23,6 +23,9 @@ const withdrawalRoutes = require("./routes/withdrawal.routes");
 const dashboardRoutes = require("./routes/dashboard.routes");
 const organizationDashboardRoutes = require("./routes/organizationDashboard.routes");
 const publicRoutes = require("./routes/public.routes");
+const transactionRoutes = require("./routes/transaction.routes");
+const adminRoutes = require("./routes/admin.routes");
+const notificationRoutes = require("./routes/notification.routes");
 
 const app = express();
 
@@ -68,6 +71,21 @@ app.use(
 app.use(
     "/api/public",
     publicRoutes
+);
+
+app.use(
+    "/api/transactions",
+    transactionRoutes
+);
+
+app.use(
+    "/api/admin",
+    adminRoutes
+);
+
+app.use(
+    "/api/notifications",
+    notificationRoutes
 );
 
 app.get("/", (req, res) => {

@@ -1,73 +1,83 @@
 const prisma = require("../config/prisma");
 
-exports.superDashboard = async () => {
+exports.summary = async () => {
 
     const [
+
         organizations,
+        colleges,
+        departments,
         users,
-        transactions,
-        pendingWithdrawals,
-        wallets
+        transactions
+
     ] = await Promise.all([
 
         prisma.organization.count(),
 
+        prisma.college.count(),
+
+        prisma.department.count(),
+
         prisma.user.count(),
 
-        prisma.transaction.count({
+        prisma.transaction.aggregate({
 
-            where: {
-                paymentStatus: "SUCCESSFUL"
-            }
+            where:{
+                paymentStatus:"SUCCESSFUL"
+            },
 
-        }),
+            _sum:{
+                grossAmount:true
+            },
 
-        prisma.withdrawal.count({
+            _count:true
 
-            where: {
-                status: "PENDING"
-            }
-
-        }),
-
-        prisma.wallet.findMany()
+        })
 
     ]);
 
-    const totals = wallets.reduce((acc, wallet) => {
+    return{
 
-        acc.available += wallet.availableBalance;
-        acc.pending += wallet.pendingBalance;
-        acc.withdrawn += wallet.withdrawnBalance;
-        acc.revenue += wallet.totalRevenue;
+        organizations,
 
-        return acc;
+        colleges,
 
-    }, {
+        departments,
 
-        available: 0,
-        pending: 0,
-        withdrawn: 0,
-        revenue: 0
+        users,
 
-    });
+        totalTransactions:
+            transactions._count,
 
-    return {
-
-        statistics: {
-
-            organizations,
-
-            users,
-
-            successfulTransactions: transactions,
-
-            pendingWithdrawals
-
-        },
-
-        wallets: totals
+        totalRevenue:
+            Number(
+                transactions._sum.grossAmount || 0
+            )
 
     };
+
+};
+
+exports.revenueSeries = async(days)=>{
+
+    const data =
+        await prisma.transaction.findMany({
+
+            where:{
+                paymentStatus:"SUCCESSFUL"
+            },
+
+            select:{
+                grossAmount:true,
+                paymentDate:true
+            },
+
+            orderBy:{
+                paymentDate:"asc"
+            }
+
+        });
+
+    return data;
 
 };

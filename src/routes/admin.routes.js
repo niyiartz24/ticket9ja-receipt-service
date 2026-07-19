@@ -3,20 +3,14 @@ const router = require("express").Router();
 const auth = require("../auth/auth.middleware");
 const permit = require("../auth/permission.middleware");
 
-const controller = require("../controllers/dashboard.controller");
+const controller = require("../controllers/admin.controller");
 
 router.use(auth);
 
 router.get(
-    "/summary",
+    "/users",
     permit("SUPER_ADMIN"),
-    controller.summary
-);
-
-router.get(
-    "/revenue-series",
-    permit("SUPER_ADMIN"),
-    controller.revenueSeries
+    controller.users
 );
 
 module.exports = router;

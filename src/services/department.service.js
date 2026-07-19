@@ -1,4 +1,5 @@
 const prisma = require("../config/prisma");
+const notificationService = require("./notification.service");
 
 exports.getAll = async () => {
 
@@ -136,7 +137,7 @@ exports.create = async (data) => {
 
     }
 
-    return await prisma.department.create({
+    const department = await prisma.department.create({
 
         data: {
 
@@ -149,6 +150,24 @@ exports.create = async (data) => {
         }
 
     });
+
+    await notificationService.create({
+
+        type: "SUCCESS",
+
+        title: "Department Created",
+
+        message: `${department.name} has been added.`,
+
+        organizationId: department.organizationId,
+
+        collegeId: department.collegeId,
+
+        departmentId: department.id
+
+    });
+
+    return department;
 
 };
 

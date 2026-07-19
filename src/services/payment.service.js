@@ -8,6 +8,7 @@ const organizationWallet = require("./organizationWallet.service");
 const collegeWallet = require("./collegeWallet.service");
 const departmentWallet = require("./departmentWallet.service");
 const feeService = require("./fee.service");
+const notificationService = require("./notification.service");
 
 /**
  * Initialize a payment
@@ -320,6 +321,22 @@ if (transaction.departmentId) {
     );
 
 }
+
+await notificationService.create({
+
+    organizationId: transaction.organizationId,
+
+    collegeId: transaction.collegeId,
+
+    departmentId: transaction.departmentId,
+
+    type: "SUCCESS",
+
+    title: "Payment Received",
+
+    message: `₦${transaction.grossAmount} received from ${transaction.payerName}.`
+
+});
 
     const receipt = await prisma.transaction.findUnique({
         where: {

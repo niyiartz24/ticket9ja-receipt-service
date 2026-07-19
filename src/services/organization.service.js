@@ -1,4 +1,5 @@
 const prisma = require("../config/prisma");
+const notificationService = require("./notification.service");
 
 exports.getAll = async () => {
     return await prisma.organization.findMany({
@@ -35,17 +36,33 @@ exports.create = async (data) => {
         throw new Error("Short name already exists.");
     }
 
-    return await prisma.organization.create({
-        data: {
-            name: data.name,
-            shortName: data.shortName,
-            logo: data.logo,
-            email: data.email,
-            phone: data.phone,
-            address: data.address,
-            primaryColor: data.primaryColor
-        }
-    });
+    const organization = await prisma.organization.create({
+
+    data: {
+        name: data.name,
+        shortName: data.shortName,
+        logo: data.logo,
+        email: data.email,
+        phone: data.phone,
+        address: data.address,
+        primaryColor: data.primaryColor
+    }
+
+});
+
+await notificationService.create({
+
+    type: "SUCCESS",
+
+    title: "Organization Created",
+
+    message: `${organization.name} has been created.`,
+
+    organizationId: organization.id
+
+});
+
+return organization;
 };
 
 exports.update = async (id, data) => {
