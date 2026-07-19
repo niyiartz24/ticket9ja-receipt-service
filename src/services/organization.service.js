@@ -77,3 +77,61 @@ exports.remove = async (id) => {
     });
 
 };
+
+exports.getPublic = async () => {
+
+    return prisma.organization.findMany({
+
+        where: {
+
+            isActive: true
+
+        },
+
+        select: {
+
+            id: true,
+
+            name: true,
+
+            shortName: true,
+
+            logo: true
+
+        },
+
+        orderBy: {
+
+            name: "asc"
+
+        }
+
+    });
+
+};
+
+exports.getPublicById = async (id) => {
+
+    return prisma.organization.findUnique({
+
+        where: {
+
+            id
+
+        },
+
+        select: {
+
+            id: true,
+
+            name: true,
+
+            shortName: true,
+
+            logo: true
+
+        }
+
+    });
+
+};

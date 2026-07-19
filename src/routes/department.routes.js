@@ -9,6 +9,16 @@ require("../auth/auth.middleware");
 const permit =
 require("../auth/permission.middleware");
 
+router.get(
+    "/public/college/:collegeId",
+    controller.getByCollege
+);
+
+router.get(
+    "/public/:id",
+    controller.getById
+);
+
 router.use(auth);
 
 router.use(

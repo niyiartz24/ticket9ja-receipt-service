@@ -9,9 +9,25 @@ const auth =
 const permit =
     require("../auth/permission.middleware");
 
-    console.log(controller);
-console.log(typeof auth);
-console.log(typeof permit);
+router.get(
+    "/public/organization/:organizationId",
+    controller.getByOrganization
+);
+
+router.get(
+    "/public/college/:collegeId",
+    controller.getByCollege
+);
+
+router.get(
+    "/public/department/:departmentId",
+    controller.getByDepartment
+);
+
+router.get(
+    "/public/:id/calculate",
+    controller.calculate
+);
 
 router.use(auth);
 

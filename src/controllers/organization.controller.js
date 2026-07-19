@@ -137,3 +137,67 @@ exports.remove = async (req, res) => {
     }
 
 };
+
+exports.getPublic = async (req, res) => {
+
+    try {
+
+        const organizations =
+            await organizationService.getPublic();
+
+        res.json({
+
+            success: true,
+
+            organizations
+
+        });
+
+    }
+
+    catch (err) {
+
+        res.status(500).json({
+
+            success: false,
+
+            message: err.message
+
+        });
+
+    }
+
+};
+
+exports.getPublicById = async (req, res) => {
+
+    try {
+
+        const organization =
+            await organizationService.getPublicById(
+                req.params.id
+            );
+
+        res.json({
+
+            success: true,
+
+            organization
+
+        });
+
+    }
+
+    catch (err) {
+
+        res.status(404).json({
+
+            success: false,
+
+            message: err.message
+
+        });
+
+    }
+
+};

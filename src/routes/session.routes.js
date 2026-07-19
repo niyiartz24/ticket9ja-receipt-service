@@ -4,12 +4,30 @@ const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
 
-router.get("/", async (req, res) => {
-  const sessions = await prisma.academicSession.findMany({
-    where: { active: true }
-  });
+router.get(
+    "/active",
+    async (req, res) => {
 
-  res.json({ sessions });
-});
+        const session =
+            await prisma.academicSession.findFirst({
+
+                where: {
+
+                    active: true
+
+                }
+
+            });
+
+        res.json({
+
+            success: true,
+
+            session
+
+        });
+
+    }
+);
 
 module.exports = router;

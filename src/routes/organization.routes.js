@@ -9,6 +9,28 @@ require("../auth/auth.middleware");
 const permit =
 require("../auth/permission.middleware");
 
+/*
+|--------------------------------------------------------------------------
+| PUBLIC
+|--------------------------------------------------------------------------
+*/
+
+router.get(
+    "/public",
+    controller.getPublic
+);
+
+router.get(
+    "/public/:id",
+    controller.getPublicById
+);
+
+/*
+|--------------------------------------------------------------------------
+| ADMIN
+|--------------------------------------------------------------------------
+*/
+
 router.use(auth);
 
 router.use(

@@ -9,6 +9,16 @@ require("../auth/auth.middleware");
 const permit =
 require("../auth/permission.middleware");
 
+router.get(
+    "/public/organization/:organizationId",
+    controller.getByOrganization
+);
+
+router.get(
+    "/public/:id",
+    controller.getById
+);
+
 router.use(auth);
 
 router.use(
