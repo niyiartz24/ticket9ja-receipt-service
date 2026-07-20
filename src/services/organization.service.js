@@ -79,16 +79,18 @@ exports.update = async (id, data) => {
 
 };
 
-exports.remove = async (id) => {
+exports.suspend = async (id) => {
 
-    await exports.getById(id);
+    const organization = await exports.getById(id);
 
-    return await prisma.organization.update({
+    return prisma.organization.update({
 
-        where: { id },
+        where: {
+            id
+        },
 
         data: {
-            isActive: false
+            isActive: !organization.isActive
         }
 
     });

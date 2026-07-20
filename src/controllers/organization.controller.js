@@ -201,3 +201,26 @@ exports.getPublicById = async (req, res) => {
     }
 
 };
+
+exports.suspend = async (req, res) => {
+
+    try {
+
+        const organization =
+            await organizationService.suspend(req.params.id);
+
+        res.json({
+            success: true,
+            organization
+        });
+
+    } catch (err) {
+
+        res.status(400).json({
+            success: false,
+            message: err.message
+        });
+
+    }
+
+};

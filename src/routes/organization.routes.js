@@ -47,4 +47,9 @@ router.put("/:id", controller.update);
 
 router.delete("/:id", controller.remove);
 
+router.post(
+    "/:id/suspend",
+    controller.suspend
+);
+
 module.exports = router;
