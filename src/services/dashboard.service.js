@@ -16,7 +16,7 @@ exports.getSummary = async (user) => {
     prisma.user.count(),
     prisma.transaction.findMany({
       where: {
-        paymentStatus: "SUCCESS"
+        paymentStatus: "SUCCESSFUL"
       }
     }),
     prisma.withdrawal.count(),
@@ -44,7 +44,7 @@ exports.getRevenueSeries = async () => {
 
   const txns = await prisma.transaction.findMany({
     where: {
-      paymentStatus: "SUCCESS"
+      paymentStatus: "SUCCESSFUL"
     },
     orderBy: {
       createdAt: "asc"
