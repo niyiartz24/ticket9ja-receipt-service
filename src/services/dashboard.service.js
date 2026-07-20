@@ -1,83 +1,75 @@
 const prisma = require("../config/prisma");
 
-exports.summary = async () => {
+exports.getSummary = async (user) => {
+  const [
+    organizations,
+    colleges,
+    departments,
+    users,
+    transactions,
+    withdrawals,
+    wallet
+  ] = await Promise.all([
+    prisma.organization.count(),
+    prisma.college.count(),
+    prisma.department.count(),
+    prisma.user.count(),
+    prisma.transaction.findMany({
+      where: {
+        status: "SUCCESS"
+      }
+    }),
+    prisma.withdrawal.count(),
+    prisma.wallet.findFirst()
+  ]);
 
-    const [
+  const totalRevenue = transactions.reduce(
+    (sum, t) => sum + Number(t.amount),
+    0
+  );
 
-        organizations,
-        colleges,
-        departments,
-        users,
-        transactions
-
-    ] = await Promise.all([
-
-        prisma.organization.count(),
-
-        prisma.college.count(),
-
-        prisma.department.count(),
-
-        prisma.user.count(),
-
-        prisma.transaction.aggregate({
-
-            where:{
-                paymentStatus:"SUCCESSFUL"
-            },
-
-            _sum:{
-                grossAmount:true
-            },
-
-            _count:true
-
-        })
-
-    ]);
-
-    return{
-
-        organizations,
-
-        colleges,
-
-        departments,
-
-        users,
-
-        totalTransactions:
-            transactions._count,
-
-        totalRevenue:
-            Number(
-                transactions._sum.grossAmount || 0
-            )
-
-    };
-
+  return {
+    organizations,
+    colleges,
+    departments,
+    users,
+    withdrawals,
+    transactions: transactions.length,
+    totalRevenue,
+    walletBalance: wallet?.balance || 0
+  };
 };
 
-exports.revenueSeries = async(days)=>{
+exports.getRevenueSeries = async () => {
 
-    const data =
-        await prisma.transaction.findMany({
+  const txns = await prisma.transaction.findMany({
+    where: {
+      status: "SUCCESS"
+    },
+    orderBy: {
+      createdAt: "asc"
+    }
+  });
 
-            where:{
-                paymentStatus:"SUCCESSFUL"
-            },
+  const months = {};
 
-            select:{
-                grossAmount:true,
-                paymentDate:true
-            },
+  txns.forEach(tx => {
 
-            orderBy:{
-                paymentDate:"asc"
-            }
+    const month = tx.createdAt.toLocaleString(
+      "en-US",
+      {
+        month: "short"
+      }
+    );
 
-        });
+    months[month] =
+      (months[month] || 0) +
+      Number(tx.amount);
 
-    return data;
+  });
 
+  return Object.entries(months).map(([month, amount]) => ({
+    month,
+    amount
+  }));
 };

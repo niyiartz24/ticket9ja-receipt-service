@@ -1,48 +1,46 @@
-const dashboardService = require("../services/dashboard.service");
+const dashboardService =
+require("../services/dashboard.service");
 
 exports.summary = async (req, res) => {
 
     try {
 
-        const data =
-            await dashboardService.summary();
+        const summary =
+            await dashboardService.getSummary(req.user);
 
         res.json({
             success: true,
-            data
+            summary
         });
 
     } catch (err) {
 
         res.status(500).json({
-            success:false,
-            message:err.message
+            success: false,
+            message: err.message
         });
 
     }
 
 };
 
-exports.revenueSeries = async (req,res)=>{
+exports.revenueSeries = async (req, res) => {
 
-    try{
+    try {
 
-        const days =
-            Number(req.query.days || 30);
-
-        const data =
-            await dashboardService.revenueSeries(days);
+        const revenue =
+            await dashboardService.getRevenueSeries();
 
         res.json({
-            success:true,
-            data
+            success: true,
+            revenue
         });
 
-    }catch(err){
+    } catch (err) {
 
         res.status(500).json({
-            success:false,
-            message:err.message
+            success: false,
+            message: err.message
         });
 
     }

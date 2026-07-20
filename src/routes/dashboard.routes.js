@@ -1,21 +1,20 @@
 const router = require("express").Router();
 
-const auth = require("../auth/auth.middleware");
-const permit = require("../auth/permission.middleware");
+const controller =
+require("../controllers/dashboard.controller");
 
-const controller = require("../controllers/dashboard.controller");
+const auth =
+require("../auth/auth.middleware");
 
 router.use(auth);
 
 router.get(
     "/summary",
-    permit("SUPER_ADMIN"),
     controller.summary
 );
 
 router.get(
     "/revenue-series",
-    permit("SUPER_ADMIN"),
     controller.revenueSeries
 );
 
