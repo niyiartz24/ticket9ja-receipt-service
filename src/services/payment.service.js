@@ -293,7 +293,7 @@ exports.completePayment = async (reference, verification) => {
         paymentDate: new Date(),
 
         paymentMethod:
-            verification.data.channel || "BudPay"
+            verification.data.channel || "BUDPAY"
 
     }
 
