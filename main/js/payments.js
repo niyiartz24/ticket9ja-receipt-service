@@ -23,6 +23,8 @@
 
   const departmentSelect = document.getElementById("departmentSelect");
   const departmentField = document.getElementById("departmentField");
+  const collegeSelect = document.getElementById("collegeSelect");
+  const collegeField = document.getElementById("collegeField");
   const sessionField = document.getElementById("sessionField");
   const sessionDisplay = document.getElementById("sessionDisplay");
   const sessionHiddenId = document.getElementById("sessionHiddenId");
@@ -40,7 +42,8 @@
 
   let currentOrganization = null;
   let currentPaymentType = null;
-  let currentDepartments = [];
+  let currentColleges = [];
+let currentDepartments = [];
   let currentSession = null;
 
   if (!organizationId || !paymentTypeId) {
@@ -139,6 +142,10 @@
           (p) => pickField(p, ["id"], "") === paymentTypeId
         ) || null;
 
+      currentColleges = colleges.filter(c =>
+    pickField(c, ["organizationId"], organizationId) === organizationId
+);
+
       currentDepartments = departments.filter(
         (d) =>
           pickField(d, ["organizationId"], organizationId) ===
@@ -160,9 +167,10 @@
         return;
       }
 
-      renderSummary();
-      renderDepartments();
-      renderSession();
+     renderSummary();
+renderColleges();
+renderDepartments();
+renderSession();
 
       formSection.hidden = false;
     } catch (error) {
@@ -205,6 +213,34 @@
     payDescEl.hidden = !payDesc;
     amountEl.textContent = formatCurrency(amount);
   }
+
+  function renderColleges() {
+
+    if (!currentColleges.length) {
+        collegeField.hidden = true;
+        return;
+    }
+
+    collegeField.hidden = false;
+
+    collegeSelect.innerHTML =
+        `<option value="">Select college</option>` +
+        currentColleges.map(college => {
+
+            const id = pickField(college, ["id"], "");
+
+            const name = escapeHTML(
+                pickField(college, ["name"], "College")
+            );
+
+            return `
+                <option value="${id}">
+                    ${name}
+                </option>
+            `;
+
+        }).join("");
+}
 
   /* ---------------------------------------------------------------
      Departments (optional)
