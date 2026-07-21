@@ -5,7 +5,7 @@ const prisma = require("../config/prisma");
  */
 exports.getOrCreate = async (departmentId) => {
 
-    let wallet = await prisma.departmentWallet.findUnique({
+    let wallet = await prisma.wallet.findUnique({
         where: {
             departmentId
         }
@@ -13,7 +13,7 @@ exports.getOrCreate = async (departmentId) => {
 
     if (!wallet) {
 
-        wallet = await prisma.departmentWallet.create({
+        wallet = await prisma.wallet.create({
 
             data: {
 
@@ -47,7 +47,7 @@ exports.credit = async (departmentId, amount) => {
 
     await exports.getOrCreate(departmentId);
 
-    return prisma.departmentWallet.update({
+    return prisma.wallet.update({
 
         where: {
             departmentId
@@ -84,7 +84,7 @@ exports.debit = async (departmentId, amount) => {
 
     }
 
-    return prisma.departmentWallet.update({
+    return prisma.wallet.update({
 
         where: {
             departmentId
@@ -121,7 +121,7 @@ exports.reserve = async (departmentId, amount) => {
 
     }
 
-    return prisma.departmentWallet.update({
+    return prisma.wallet.update({
 
         where: {
             departmentId
@@ -149,7 +149,7 @@ exports.reserve = async (departmentId, amount) => {
  */
 exports.release = async (departmentId, amount) => {
 
-    return prisma.departmentWallet.update({
+    return prisma.wallet.update({
 
         where: {
             departmentId

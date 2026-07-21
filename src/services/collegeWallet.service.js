@@ -5,7 +5,7 @@ const prisma = require("../config/prisma");
  */
 exports.getOrCreate = async (collegeId) => {
 
-    let wallet = await prisma.collegeWallet.findUnique({
+    let wallet = await prisma.wallet.findUnique({
         where: {
             collegeId
         }
@@ -13,7 +13,7 @@ exports.getOrCreate = async (collegeId) => {
 
     if (!wallet) {
 
-        wallet = await prisma.collegeWallet.create({
+        wallet = await prisma.wallet.create({
 
             data: {
 
@@ -47,7 +47,7 @@ exports.credit = async (collegeId, amount) => {
 
     await exports.getOrCreate(collegeId);
 
-    return prisma.collegeWallet.update({
+    return prisma.wallet.update({
 
         where: {
             collegeId
@@ -84,7 +84,7 @@ exports.debit = async (collegeId, amount) => {
 
     }
 
-    return prisma.collegeWallet.update({
+    return prisma.wallet.update({
 
         where: {
             collegeId
@@ -121,7 +121,7 @@ exports.reserve = async (collegeId, amount) => {
 
     }
 
-    return prisma.collegeWallet.update({
+    return prisma.wallet.update({
 
         where: {
             collegeId
@@ -149,7 +149,7 @@ exports.reserve = async (collegeId, amount) => {
  */
 exports.release = async (collegeId, amount) => {
 
-    return prisma.collegeWallet.update({
+    return prisma.wallet.update({
 
         where: {
             collegeId
