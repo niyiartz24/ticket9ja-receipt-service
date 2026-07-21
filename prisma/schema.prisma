@@ -255,7 +255,7 @@ model AuditLog {
 }
 
 model Wallet {
-  id               String       @id
+  id String @id @default(uuid())
   organizationId   String       @unique
   availableBalance Decimal      @default(0) @db.Decimal(18, 2)
   pendingBalance   Decimal      @default(0) @db.Decimal(18, 2)
