@@ -1,62 +1,96 @@
 const service =
 require("../services/platform.service");
 
-exports.revenue = async (req,res)=>{
+const prisma = require("../config/prisma");
 
-    try{
+exports.getPlatformRevenue = async (req, res) => {
+  try {
+    const days = Number(req.query.days || 30);
 
-        const result =
-            await service.revenue(
-                Number(req.query.days)||30
-            );
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days);
 
-        res.json({
+    const transactions = await prisma.transaction.findMany({
+      where: {
+        paymentStatus: "SUCCESSFUL",
+        paymentDate: {
+          gte: startDate
+        }
+      },
+      include: {
+        organization: true
+      },
+      orderBy: {
+        paymentDate: "asc"
+      }
+    });
 
-            success:true,
+    let gross = 0;
+    let net = 0;
+    let totalPlatformFees = 0;
 
-            ...result
+    const revenueMap = {};
+    const orgMap = {};
 
-        });
+    transactions.forEach(tx => {
+      const amount = Number(tx.amount);
+      const fee = Number(tx.platformFee);
 
-    }catch(err){
+      gross += amount;
+      net += amount - fee;
+      totalPlatformFees += fee;
 
-        res.status(500).json({
+      const label = tx.paymentDate.toISOString().split("T")[0];
 
-            success:false,
+      revenueMap[label] = (revenueMap[label] || 0) + amount;
 
-            message:err.message
+      const orgName = tx.organization.name;
 
-        });
+      if (!orgMap[orgName]) {
+        orgMap[orgName] = 0;
+      }
 
-    }
+      orgMap[orgName] += amount;
+    });
 
-};
+    const labels = Object.keys(revenueMap);
 
-exports.fees = async(req,res)=>{
+    const data = labels.map(label => revenueMap[label]);
 
-    try{
+    const topOrgs = Object.entries(orgMap)
+      .map(([name, revenue]) => ({
+        name,
+        revenue
+      }))
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 10);
 
-        const result =
-            await service.fees();
+    res.json({
+      success: true,
 
-        res.json({
+      gross,
 
-            success:true,
+      net,
 
-            ...result
+      avgTxn: transactions.length
+        ? gross / transactions.length
+        : 0,
 
-        });
+      platformFees: totalPlatformFees,
 
-    }catch(err){
+      labels,
 
-        res.status(500).json({
+      data,
 
-            success:false,
+      topOrgs
+    });
 
-            message:err.message
+  } catch (err) {
+    console.error(err);
 
-        });
-
-    }
-
+    res.status(500).json({
+      success: false,
+      message: err.message
+    });
+  }
 };
