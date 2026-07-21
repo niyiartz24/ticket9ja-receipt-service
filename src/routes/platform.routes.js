@@ -13,7 +13,7 @@ router.use(
 
 router.get(
     "/revenue",
-    controller.revenue
+    controller.getPlatformRevenue
 );
 
 router.get(

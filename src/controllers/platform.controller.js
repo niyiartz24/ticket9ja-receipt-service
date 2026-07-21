@@ -94,3 +94,20 @@ exports.getPlatformRevenue = async (req, res) => {
     });
   }
 };
+
+exports.fees = async (req, res) => {
+    try {
+        const result = await service.fees();
+
+        res.json({
+            success: true,
+            ...result
+        });
+
+    } catch (err) {
+        res.status(500).json({
+            success: false,
+            message: err.message
+        });
+    }
+};
