@@ -169,7 +169,7 @@ let currentDepartments = [];
 
      renderSummary();
 renderColleges();
-renderDepartments();
+renderDepartments("");
 renderSession();
 
       formSection.hidden = false;
@@ -242,32 +242,52 @@ renderSession();
         }).join("");
 }
 
+collegeSelect.addEventListener("change", () => {
+
+    renderDepartments(collegeSelect.value);
+
+});
+
   /* ---------------------------------------------------------------
      Departments (optional)
      --------------------------------------------------------------- */
-  function renderDepartments() {
-    if (!currentDepartments.length) {
-      departmentField.hidden = true;
-      return;
+  function renderDepartments(collegeId = "") {
+
+    let departments = currentDepartments;
+
+    if (collegeId) {
+        departments = currentDepartments.filter(dept =>
+            pickField(dept, ["collegeId"], "") === collegeId
+        );
+    }
+
+    if (!departments.length) {
+        departmentField.hidden = true;
+        departmentSelect.innerHTML =
+            `<option value="">No departments available</option>`;
+        return;
     }
 
     departmentField.hidden = false;
 
     departmentSelect.innerHTML =
-      `<option value="">Select department</option>` +
-      currentDepartments
-        .map((dept) => {
-          const id = pickField(dept, ["id"], "");
-          const name = escapeHTML(
-            pickField(dept, ["name", "title"], "Department")
-          );
+        `<option value="">Select department</option>` +
+        departments.map(dept => {
 
-          return `<option value="${escapeHTML(
-            id
-          )}">${name}</option>`;
-        })
-        .join("");
-  }
+            const id = pickField(dept, ["id"], "");
+
+            const name = escapeHTML(
+                pickField(dept, ["name", "title"], "Department")
+            );
+
+            return `
+                <option value="${id}">
+                    ${name}
+                </option>
+            `;
+
+        }).join("");
+}
 
   /* ---------------------------------------------------------------
      Session (optional)
@@ -337,6 +357,9 @@ renderSession();
       "level"
     ].forEach(clearFieldError);
 
+    if (!collegeField.hidden)
+    clearFieldError("collegeSelect");
+
     if (!departmentField.hidden)
       clearFieldError("departmentSelect");
 
@@ -376,6 +399,18 @@ renderSession();
       setFieldError("level", "Select your level.");
       isValid = false;
     }
+
+    if (
+    !collegeField.hidden &&
+    !collegeSelect.value
+) {
+    setFieldError(
+        "collegeSelect",
+        "Select your college."
+    );
+
+    isValid = false;
+}
 
     if (
       !departmentField.hidden &&
@@ -438,8 +473,9 @@ renderSession();
         .value.trim(),
       level: document.getElementById("level").value.trim(),
       organizationId,
-      collegeId:
-    selectedCollegeId || null,
+      collegeId: collegeField.hidden
+    ? ""
+    : collegeSelect.value,
       departmentId: departmentField.hidden
         ? ""
         : departmentSelect.value,
