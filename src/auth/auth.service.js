@@ -38,13 +38,19 @@ exports.login = async ({ email, password }) => {
   return {
     token,
     user: {
-      id: user.id,
-      fullName: user.fullName,
-      email: user.email,
-      role: user.role,
-      organization: user.organization,
-      college: user.college,
-      department: user.department,
+        id: user.id,
+        fullName: user.fullName,
+        email: user.email,
+
+        role: user.role,
+
+        organizationId: user.organizationId,
+        collegeId: user.collegeId,
+        departmentId: user.departmentId,
+
+        organization: user.organization,
+        college: user.college,
+        department: user.department,
     },
-  };
+};
 };
