@@ -68,10 +68,19 @@ switch (invitedBy.role) {
         "FINANCE_OFFICER",
         "VIEWER"
     ].includes(data.role)) {
-
         throw new Error("Invalid role.");
-
     }
+
+    // assign selected tenant
+
+    data.organizationId =
+        data.organizationId || null;
+
+    data.collegeId =
+        data.collegeId || null;
+
+    data.departmentId =
+        data.departmentId || null;
 
     break;
 
