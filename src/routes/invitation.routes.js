@@ -46,33 +46,15 @@ router.post(
 );
 
 router.get(
-
     "/",
-
-    permit("SUPER_ADMIN"),
-
+    permit(
+        "SUPER_ADMIN",
+        "ORGANIZATION_ADMIN",
+        "COLLEGE_ADMIN"
+    ),
     controller.list
-
 );
 
-/*
-Public
-*/
-router.get(
-
-    "/verify/:token",
-
-    controller.verify
-
-);
-
-router.post(
-
-    "/accept",
-
-    controller.accept
-
-);
 
 router.delete(
 

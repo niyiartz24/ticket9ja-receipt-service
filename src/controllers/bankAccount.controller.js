@@ -29,31 +29,23 @@ exports.create = async (req, res) => {
 
 };
 
-exports.getByOrganization = async (req, res) => {
+exports.getMine = async (req, res) => {
 
     try {
 
         const accounts =
-            await service.getByOrganization(
-                req.params.organizationId
-            );
+            await bankAccountService.getMine(req.user);
 
         res.json({
-
             success: true,
-
             accounts
-
         });
 
     } catch (err) {
 
-        res.status(400).json({
-
+        res.status(500).json({
             success: false,
-
             message: err.message
-
         });
 
     }

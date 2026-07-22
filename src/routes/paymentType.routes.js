@@ -32,7 +32,12 @@ router.get(
 router.use(auth);
 
 router.use(
-    permit("SUPER_ADMIN")
+    permit(
+        "SUPER_ADMIN",
+        "ORGANIZATION_ADMIN",
+        "COLLEGE_ADMIN",
+        "DEPARTMENT_ADMIN"
+    )
 );
 
 router.get("/", controller.getAll);

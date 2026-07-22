@@ -49,16 +49,22 @@ exports.create = async (data) => {
 
 };
 
-exports.getByOrganization = async (organizationId) => {
+exports.getMine = async (user) => {
 
-    return await prisma.bankAccount.findMany({
+    if (user.role === "SUPER_ADMIN") {
+
+        return prisma.bankAccount.findMany();
+
+    }
+
+    return prisma.bankAccount.findMany({
 
         where: {
-            organizationId
+            organizationId: user.organizationId
         },
 
         orderBy: {
-            isDefault: "desc"
+            createdAt: "desc"
         }
 
     });
