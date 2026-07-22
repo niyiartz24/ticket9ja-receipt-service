@@ -9,6 +9,16 @@ require("../auth/permission.middleware");
 const controller =
 require("../controllers/invitation.controller");
 
+router.get(
+    "/verify/:token",
+    controller.verify
+);
+
+router.post(
+    "/accept",
+    controller.accept
+);
+
 router.use(auth);
 
 /*
