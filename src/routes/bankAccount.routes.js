@@ -1,11 +1,11 @@
-const express = require("express");
+const router = require("express").Router();
 
-const router = express.Router();
+const auth = require("../auth/auth.middleware");
+const permit = require("../auth/permission.middleware");
 
-const controller =
-    require("../controllers/bankAccount.controller");
+const controller = require("../controllers/bankAccount.controller");
 
-    router.use(auth);
+router.use(auth);
 
 router.use(
     permit(
