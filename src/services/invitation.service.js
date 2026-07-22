@@ -60,8 +60,20 @@ if (!data.role)
 switch (invitedBy.role) {
 
     case "SUPER_ADMIN":
-        // Can invite anyone.
-        break;
+
+    if (![
+        "ORGANIZATION_ADMIN",
+        "COLLEGE_ADMIN",
+        "DEPARTMENT_ADMIN",
+        "FINANCE_OFFICER",
+        "VIEWER"
+    ].includes(data.role)) {
+
+        throw new Error("Invalid role.");
+
+    }
+
+    break;
 
     case "ORGANIZATION_ADMIN":
 
