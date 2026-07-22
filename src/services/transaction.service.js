@@ -16,16 +16,28 @@ exports.getAll = async (user, query) => {
     switch (user.role) {
 
         case "ORGANIZATION_ADMIN":
-            where.organizationId = user.organizationId;
-            break;
 
-        case "COLLEGE_ADMIN":
-            where.collegeId = user.collegeId;
-            break;
+    if (!user.organizationId)
+        throw new Error("Organization not assigned.");
 
-        case "DEPARTMENT_ADMIN":
-            where.departmentId = user.departmentId;
-            break;
+    where.organizationId = user.organizationId;
+    break;
+
+case "COLLEGE_ADMIN":
+
+    if (!user.collegeId)
+        throw new Error("College not assigned.");
+
+    where.collegeId = user.collegeId;
+    break;
+
+case "DEPARTMENT_ADMIN":
+
+    if (!user.departmentId)
+        throw new Error("Department not assigned.");
+
+    where.departmentId = user.departmentId;
+    break;
 
     }
 
@@ -90,45 +102,29 @@ exports.getAll = async (user, query) => {
         ]);
 
     return {
-
-        transactions,
-
-        pagination: {
-
-            page,
-
-            pageSize,
-
-            total,
-
-            totalPages:
-                Math.ceil(total / pageSize)
-
-        }
-
-    };
+    data: transactions,
+    total,
+    page,
+    pageSize,
+    totalPages: Math.ceil(total / pageSize)
+};
 
 };
 
 exports.getOne = async (user, id) => {
 
-    const where = {
-        id
-    };
-
     const transaction =
         await prisma.transaction.findUnique({
 
-            where,
+            where: {
+                id
+            },
 
             include: {
 
                 paymentType: true,
-
                 organization: true,
-
                 college: true,
-
                 department: true
 
             }
@@ -139,25 +135,29 @@ exports.getOne = async (user, id) => {
         throw new Error("Transaction not found.");
     }
 
-    if (
-        user.role === "ORGANIZATION_ADMIN" &&
-        transaction.organizationId !== user.organizationId
-    ) {
-        throw new Error("Access denied.");
-    }
+    switch (user.role) {
 
-    if (
-        user.role === "COLLEGE_ADMIN" &&
-        transaction.collegeId !== user.collegeId
-    ) {
-        throw new Error("Access denied.");
-    }
+        case "ORGANIZATION_ADMIN":
 
-    if (
-        user.role === "DEPARTMENT_ADMIN" &&
-        transaction.departmentId !== user.departmentId
-    ) {
-        throw new Error("Access denied.");
+            if (transaction.organizationId !== user.organizationId)
+                throw new Error("Access denied.");
+
+            break;
+
+        case "COLLEGE_ADMIN":
+
+            if (transaction.collegeId !== user.collegeId)
+                throw new Error("Access denied.");
+
+            break;
+
+        case "DEPARTMENT_ADMIN":
+
+            if (transaction.departmentId !== user.departmentId)
+                throw new Error("Access denied.");
+
+            break;
+
     }
 
     return transaction;
