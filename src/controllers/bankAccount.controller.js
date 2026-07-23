@@ -34,11 +34,11 @@ exports.getMine = async (req, res) => {
     try {
 
         const accounts =
-            await bankAccountService.getMine(req.user);
+            await service.getMine(req.user);
 
         res.json({
             success: true,
-            accounts
+            data: accounts
         });
 
     } catch (err) {

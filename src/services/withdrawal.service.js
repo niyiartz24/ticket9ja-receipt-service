@@ -1,5 +1,59 @@
 const prisma = require("../config/prisma");
 
+function buildScope(user) {
+
+    switch (user.role) {
+
+        case "SUPER_ADMIN":
+            return {};
+
+        case "ORGANIZATION_ADMIN":
+            return {
+                organizationId: user.organizationId
+            };
+
+        case "COLLEGE_ADMIN":
+            return {
+                collegeId: user.collegeId
+            };
+
+        case "DEPARTMENT_ADMIN":
+            return {
+                departmentId: user.departmentId
+            };
+
+        default:
+            return {};
+    }
+
+}function buildScope(user) {
+
+    switch (user.role) {
+
+        case "SUPER_ADMIN":
+            return {};
+
+        case "ORGANIZATION_ADMIN":
+            return {
+                organizationId: user.organizationId
+            };
+
+        case "COLLEGE_ADMIN":
+            return {
+                collegeId: user.collegeId
+            };
+
+        case "DEPARTMENT_ADMIN":
+            return {
+                departmentId: user.departmentId
+            };
+
+        default:
+            return {};
+    }
+
+}
+
 exports.request = async (data) => {
 
     const wallet = await prisma.wallet.findUnique({
@@ -74,47 +128,42 @@ exports.request = async (data) => {
 
 };
 
-exports.getPending = async () => {
+exports.getPending = async (user) => {
+
+    const scope = buildScope(user);
 
     return prisma.withdrawal.findMany({
 
         where: {
+            ...scope,
             status: "PENDING"
         },
 
         include: {
-
             organization: true
-
         },
 
         orderBy: {
-
             requestedAt: "desc"
-
         }
 
     });
 
 };
 
-exports.getOrganizationHistory = async (organizationId) => {
+exports.getHistory = async (user) => {
+
+    const scope = buildScope(user);
 
     return prisma.withdrawal.findMany({
 
-        where: {
-
-            organizationId
-
-        },
+        where: scope,
 
         orderBy: {
-
             requestedAt: "desc"
-
         }
 
-});
+    });
 
 };
 
