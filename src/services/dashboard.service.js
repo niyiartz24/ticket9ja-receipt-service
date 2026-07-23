@@ -158,16 +158,16 @@ exports.getRevenueSeries = async (user) => {
 
     });
 
-    return Object.entries(months).map(
+    const labels = Object.keys(months);
+const data = Object.values(months);
 
-        ([month, amount]) => ({
-
-            month,
-
-            amount
-
-        })
-
-    );
+return {
+    labels,
+    data,
+    split: {
+        labels: [],
+        data: []
+    }
+};
 
 };
