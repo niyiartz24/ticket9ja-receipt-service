@@ -29,6 +29,7 @@ const notificationRoutes = require("./routes/notification.routes");
 const platformRoutes = require("./routes/platform.routes");
 const invitationRoutes = require("./routes/invitation.routes");
 const walletHistoryRoutes = require("./routes/walletHistory.routes");
+const walletRoutes = require("./routes/wallet.routes");
 
 
 
@@ -58,6 +59,7 @@ app.use("/api/withdrawals", withdrawalRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/organization-dashboard", organizationDashboardRoutes);
 
+app.use("/api/wallet", walletRoutes);
 app.use(
     "/api/organization-withdrawals",
     require("./routes/organizationWithdrawal.routes")
