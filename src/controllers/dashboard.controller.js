@@ -25,18 +25,21 @@ exports.summary = async (req, res) => {
 };
 
 exports.revenueSeries = async (req, res) => {
-
     try {
 
-        
-const revenueSeries = await dashboardService.getRevenueSeries(req.user);
+        const revenueSeries =
+            await dashboardService.getRevenueSeries(req.user);
 
         res.json({
             success: true,
-            revenue
+            labels: revenueSeries.labels,
+            data: revenueSeries.data,
+            split: revenueSeries.split
         });
 
     } catch (err) {
+
+        console.error(err);
 
         res.status(500).json({
             success: false,
@@ -44,5 +47,4 @@ const revenueSeries = await dashboardService.getRevenueSeries(req.user);
         });
 
     }
-
 };
