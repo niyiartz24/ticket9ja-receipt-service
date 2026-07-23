@@ -5,8 +5,8 @@ exports.summary = async (req, res) => {
 
     try {
 
-        const summary =
-            await dashboardService.getSummary(req.user);
+        const summary = await dashboardService.getSummary(req.user);
+
 
         res.json({
             success: true,
@@ -28,8 +28,8 @@ exports.revenueSeries = async (req, res) => {
 
     try {
 
-        const revenue =
-            await dashboardService.getRevenueSeries();
+        
+const revenueSeries = await dashboardService.getRevenueSeries(req.user);
 
         res.json({
             success: true,

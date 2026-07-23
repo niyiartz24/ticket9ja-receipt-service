@@ -1,75 +1,173 @@
 const prisma = require("../config/prisma");
 
-exports.getSummary = async (user) => {
-  const [
-    organizations,
-    colleges,
-    departments,
-    users,
-    transactions,
-    withdrawals,
-    wallet
-  ] = await Promise.all([
-    prisma.organization.count(),
-    prisma.college.count(),
-    prisma.department.count(),
-    prisma.user.count(),
-    prisma.transaction.findMany({
-      where: {
-        paymentStatus: "SUCCESSFUL"
-      }
-    }),
-    prisma.withdrawal.count(),
-    prisma.wallet.findFirst()
-  ]);
+function buildScope(user) {
+    switch (user.role) {
 
-  const totalRevenue = transactions.reduce(
-    (sum, t) => sum + Number(t.amount),
-    0
-  );
+        case "SUPER_ADMIN":
+            return {};
 
-  return {
-    organizations,
-    colleges,
-    departments,
-    users,
-    withdrawals,
-    transactions: transactions.length,
-    totalRevenue,
-    walletBalance: wallet?.balance || 0
-  };
-};
+        case "ORGANIZATION_ADMIN":
+            return {
+                organizationId: user.organizationId
+            };
 
-exports.getRevenueSeries = async () => {
+        case "COLLEGE_ADMIN":
+            return {
+                collegeId: user.collegeId
+            };
 
-  const txns = await prisma.transaction.findMany({
-    where: {
-      paymentStatus: "SUCCESSFUL"
-    },
-    orderBy: {
-      createdAt: "asc"
+        case "DEPARTMENT_ADMIN":
+            return {
+                departmentId: user.departmentId
+            };
+
+        default:
+            return {};
     }
-  });
+}
 
-  const months = {};
+exports.getSummary = async (user) => {
 
-  txns.forEach(tx => {
+    const scope = buildScope(user);
 
-    const month = tx.createdAt.toLocaleString(
-      "en-US",
-      {
-        month: "short"
-      }
+    const [
+        organizations,
+        colleges,
+        departments,
+        users,
+        transactions,
+        withdrawals,
+        wallet
+    ] = await Promise.all([
+
+        user.role === "SUPER_ADMIN"
+            ? prisma.organization.count()
+            : Promise.resolve(1),
+
+        user.role === "SUPER_ADMIN"
+            ? prisma.college.count()
+            : prisma.college.count({
+                where: scope.organizationId
+                    ? { organizationId: scope.organizationId }
+                    : scope.collegeId
+                        ? { id: scope.collegeId }
+                        : {}
+            }),
+
+        user.role === "SUPER_ADMIN"
+            ? prisma.department.count()
+            : prisma.department.count({
+                where: scope.departmentId
+                    ? { id: scope.departmentId }
+                    : scope.collegeId
+                        ? { collegeId: scope.collegeId }
+                        : scope.organizationId
+                            ? { organizationId: scope.organizationId }
+                            : {}
+            }),
+
+        prisma.user.count({
+            where: scope
+        }),
+
+        prisma.transaction.findMany({
+            where: {
+                ...scope,
+                paymentStatus: "SUCCESSFUL"
+            }
+        }),
+
+        prisma.withdrawal.count({
+            where: scope
+        }),
+
+        user.role === "SUPER_ADMIN"
+            ? Promise.resolve(null)
+            : prisma.wallet.findUnique({
+                where: {
+                    organizationId: user.organizationId
+                }
+            })
+
+    ]);
+
+    const totalRevenue = transactions.reduce(
+        (sum, t) => sum + Number(t.netAmount),
+        0
     );
 
-    months[month] =
-      (months[month] || 0) +
-      Number(tx.amount);
+    return {
 
-  });
+        organizations,
 
-  return Object.entries(months).map(([month, amount]) => ({
-    month,
-    amount
-  }));
+        colleges,
+
+        departments,
+
+        users,
+
+        withdrawals,
+
+        transactions: transactions.length,
+
+        totalRevenue,
+
+        walletBalance: wallet
+            ? Number(wallet.availableBalance)
+            : 0
+
+    };
+
+};
+
+exports.getRevenueSeries = async (user) => {
+
+    const scope = buildScope(user);
+
+    const txns = await prisma.transaction.findMany({
+
+        where: {
+
+            ...scope,
+
+            paymentStatus: "SUCCESSFUL"
+
+        },
+
+        orderBy: {
+
+            createdAt: "asc"
+
+        }
+
+    });
+
+    const months = {};
+
+    txns.forEach(tx => {
+
+        const month = tx.createdAt.toLocaleString("en-US", {
+
+            month: "short"
+
+        });
+
+        months[month] =
+            (months[month] || 0) +
+            Number(tx.netAmount);
+
+    });
+
+    return Object.entries(months).map(
+
+        ([month, amount]) => ({
+
+            month,
+
+            amount
+
+        })
+
+    );
+
 };
