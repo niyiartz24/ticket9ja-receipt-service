@@ -330,7 +330,7 @@ exports.getMine = async (req, res) => {
             case "ORGANIZATION_ADMIN":
 
                 withdrawals =
-                    await organizationService.getOrganizationHistory(
+                    await organizationService.getHistory(
                         req.user.organizationId
                     );
 
@@ -339,7 +339,7 @@ exports.getMine = async (req, res) => {
             case "COLLEGE_ADMIN":
 
                 withdrawals =
-                    await collegeService.getCollegeHistory(
+                    await collegeService.getHistory(
                         req.user.collegeId
                     );
 
@@ -348,7 +348,7 @@ exports.getMine = async (req, res) => {
             case "DEPARTMENT_ADMIN":
 
                 withdrawals =
-                    await departmentService.getDepartmentHistory(
+                    await departmentService.getHistory(
                         req.user.departmentId
                     );
 
