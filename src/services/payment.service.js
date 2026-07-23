@@ -315,10 +315,17 @@ if (transaction.departmentId) {
 
 } else {
 
-    await organizationWallet.credit(
-        transaction.organizationId,
-        Number(transaction.netAmount)
-    );
+    await organizationWallet.credit({
+
+    organizationId: transaction.organizationId,
+
+    amount: Number(transaction.netAmount),
+
+    reference: transaction.reference,
+
+    description: `Payment received from ${transaction.payerName}`
+
+});
 
 }
 

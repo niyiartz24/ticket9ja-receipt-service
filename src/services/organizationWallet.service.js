@@ -1,39 +1,35 @@
 const prisma = require("../config/prisma");
 
 /**
- * Create wallet automatically
+ * Get or create organization wallet
  */
-exports.getOrCreate = async (organizationId) => {
+exports.getOrCreate = async (tx, organizationId) => {
 
-    let wallet =
-        await prisma.wallet.findUnique({
-            where: {
-                organizationId
-            }
-        });
+    let wallet = await tx.wallet.findUnique({
+        where: { organizationId }
+    });
 
     if (!wallet) {
 
-        wallet =
-            await prisma.wallet.create({
+        wallet = await tx.wallet.create({
 
-                data: {
+            data: {
 
-                    organizationId,
+                organizationId,
 
-                    availableBalance: 0,
+                availableBalance: 0,
 
-                    pendingBalance: 0,
+                pendingBalance: 0,
 
-                    reservedBalance: 0,
+                reservedBalance: 0,
 
-                    withdrawnBalance: 0,
+                withdrawnBalance: 0,
 
-                    totalRevenue: 0
+                totalRevenue: 0
 
-                }
+            }
 
-            });
+        });
 
     }
 
@@ -43,29 +39,86 @@ exports.getOrCreate = async (organizationId) => {
 
 
 /**
+ * Wallet Details
+ */
+exports.details = async (organizationId) => {
+
+    return prisma.$transaction(async (tx) => {
+
+        return exports.getOrCreate(tx, organizationId);
+
+    });
+
+};
+
+
+/**
  * Credit wallet
  */
-exports.credit = async (organizationId, amount) => {
+exports.credit = async ({
+    organizationId,
+    amount,
+    reference = null,
+    description = null
+}) => {
 
-    await exports.getOrCreate(organizationId);
+    return prisma.$transaction(async (tx) => {
 
-    return prisma.wallet.update({
+        const wallet =
+            await exports.getOrCreate(tx, organizationId);
 
-        where: {
-            organizationId
-        },
+        const before =
+            Number(wallet.availableBalance);
 
-        data: {
+        const after =
+            before + Number(amount);
 
-            availableBalance: {
-                increment: amount
-            },
+        const updatedWallet =
+            await tx.wallet.update({
 
-            totalRevenue: {
-                increment: amount
+                where: {
+                    organizationId
+                },
+
+                data: {
+
+                    availableBalance: {
+                        increment: amount
+                    },
+
+                    totalRevenue: {
+                        increment: amount
+                    }
+
+                }
+
+            });
+
+        await tx.walletHistory.create({
+
+            data: {
+
+                walletId: wallet.id,
+
+                organizationId,
+
+                type: "PAYMENT",
+
+                amount,
+
+                balanceBefore: before,
+
+                balanceAfter: after,
+
+                reference,
+
+                description
+
             }
 
-        }
+        });
+
+        return updatedWallet;
 
     });
 
@@ -75,34 +128,76 @@ exports.credit = async (organizationId, amount) => {
 /**
  * Debit wallet
  */
-exports.debit = async (organizationId, amount) => {
+exports.debit = async ({
+    organizationId,
+    amount,
+    reference = null,
+    description = null
+}) => {
 
-    const wallet =
-        await exports.getOrCreate(organizationId);
+    return prisma.$transaction(async (tx) => {
 
-    if (Number(wallet.availableBalance) < Number(amount)) {
+        const wallet =
+            await exports.getOrCreate(tx, organizationId);
 
-        throw new Error("Insufficient balance.");
+        const before =
+            Number(wallet.availableBalance);
 
-    }
+        if (before < Number(amount)) {
 
-    return prisma.wallet.update({
-
-        where: {
-            organizationId
-        },
-
-        data: {
-
-            availableBalance: {
-                decrement: amount
-            },
-
-            withdrawnBalance: {
-                increment: amount
-            }
+            throw new Error("Insufficient balance.");
 
         }
+
+        const after =
+            before - Number(amount);
+
+        const updatedWallet =
+            await tx.wallet.update({
+
+                where: {
+                    organizationId
+                },
+
+                data: {
+
+                    availableBalance: {
+                        decrement: amount
+                    },
+
+                    withdrawnBalance: {
+                        increment: amount
+                    }
+
+                }
+
+            });
+
+        await tx.walletHistory.create({
+
+            data: {
+
+                walletId: wallet.id,
+
+                organizationId,
+
+                type: "WITHDRAWAL",
+
+                amount,
+
+                balanceBefore: before,
+
+                balanceAfter: after,
+
+                reference,
+
+                description
+
+            }
+
+        });
+
+        return updatedWallet;
 
     });
 
@@ -112,34 +207,76 @@ exports.debit = async (organizationId, amount) => {
 /**
  * Reserve funds
  */
-exports.reserve = async (organizationId, amount) => {
+exports.reserve = async ({
+    organizationId,
+    amount,
+    reference = null,
+    description = null
+}) => {
 
-    const wallet =
-        await exports.getOrCreate(organizationId);
+    return prisma.$transaction(async (tx) => {
 
-    if (Number(wallet.availableBalance) < Number(amount)) {
+        const wallet =
+            await exports.getOrCreate(tx, organizationId);
 
-        throw new Error("Insufficient balance.");
+        const before =
+            Number(wallet.availableBalance);
 
-    }
+        if (before < Number(amount)) {
 
-    return prisma.wallet.update({
-
-        where: {
-            organizationId
-        },
-
-        data: {
-
-            availableBalance: {
-                decrement: amount
-            },
-
-            reservedBalance: {
-                increment: amount
-            }
+            throw new Error("Insufficient balance.");
 
         }
+
+        const after =
+            before - Number(amount);
+
+        const updatedWallet =
+            await tx.wallet.update({
+
+                where: {
+                    organizationId
+                },
+
+                data: {
+
+                    availableBalance: {
+                        decrement: amount
+                    },
+
+                    reservedBalance: {
+                        increment: amount
+                    }
+
+                }
+
+            });
+
+        await tx.walletHistory.create({
+
+            data: {
+
+                walletId: wallet.id,
+
+                organizationId,
+
+                type: "RESERVE",
+
+                amount,
+
+                balanceBefore: before,
+
+                balanceAfter: after,
+
+                reference,
+
+                description
+
+            }
+
+        });
+
+        return updatedWallet;
 
     });
 
@@ -149,36 +286,71 @@ exports.reserve = async (organizationId, amount) => {
 /**
  * Release reserved funds
  */
-exports.release = async (organizationId, amount) => {
+exports.release = async ({
+    organizationId,
+    amount,
+    reference = null,
+    description = null
+}) => {
 
-    return prisma.wallet.update({
+    return prisma.$transaction(async (tx) => {
 
-        where: {
-            organizationId
-        },
+        const wallet =
+            await exports.getOrCreate(tx, organizationId);
 
-        data: {
+        const before =
+            Number(wallet.availableBalance);
 
-            reservedBalance: {
-                decrement: amount
-            },
+        const after =
+            before + Number(amount);
 
-            availableBalance: {
-                increment: amount
+        const updatedWallet =
+            await tx.wallet.update({
+
+                where: {
+                    organizationId
+                },
+
+                data: {
+
+                    reservedBalance: {
+                        decrement: amount
+                    },
+
+                    availableBalance: {
+                        increment: amount
+                    }
+
+                }
+
+            });
+
+        await tx.walletHistory.create({
+
+            data: {
+
+                walletId: wallet.id,
+
+                organizationId,
+
+                type: "RELEASE",
+
+                amount,
+
+                balanceBefore: before,
+
+                balanceAfter: after,
+
+                reference,
+
+                description
+
             }
 
-        }
+        });
+
+        return updatedWallet;
 
     });
-
-};
-
-
-/**
- * Wallet Details
- */
-exports.details = async (organizationId) => {
-
-    return exports.getOrCreate(organizationId);
 
 };

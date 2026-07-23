@@ -256,16 +256,48 @@ model AuditLog {
 
 model Wallet {
   id String @id @default(uuid())
-  organizationId   String       @unique
-  availableBalance Decimal      @default(0) @db.Decimal(18, 2)
-  pendingBalance   Decimal      @default(0) @db.Decimal(18, 2)
-  reservedBalance  Decimal      @default(0) @db.Decimal(18, 2)
-  withdrawnBalance Decimal      @default(0) @db.Decimal(18, 2)
-  totalRevenue     Decimal      @default(0) @db.Decimal(18, 2)
-  createdAt        DateTime     @default(now())
+
+  organizationId String @unique
+
+  availableBalance Decimal @default(0) @db.Decimal(18,2)
+  pendingBalance Decimal @default(0) @db.Decimal(18,2)
+  reservedBalance Decimal @default(0) @db.Decimal(18,2)
+  withdrawnBalance Decimal @default(0) @db.Decimal(18,2)
+  totalRevenue Decimal @default(0) @db.Decimal(18,2)
+
+  createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  Organization     Organization @relation(fields: [organizationId], references: [id])
-  Withdrawal       Withdrawal[]
+
+  Organization Organization @relation(fields:[organizationId], references:[id])
+
+  histories WalletHistory[]
+
+  Withdrawal Withdrawal[]
+}
+
+model WalletHistory {
+  id             String   @id @default(cuid())
+
+  walletId       String
+  wallet         Wallet   @relation(fields: [walletId], references: [id])
+
+  organizationId String
+
+  type           WalletHistoryType
+
+  amount         Decimal  @db.Decimal(18,2)
+
+  balanceBefore  Decimal  @db.Decimal(18,2)
+  balanceAfter   Decimal  @db.Decimal(18,2)
+
+  reference      String?
+  description    String?
+
+  createdAt      DateTime @default(now())
+
+  @@index([walletId])
+  @@index([organizationId])
+  @@index([createdAt])
 }
 
 model Notification {
@@ -301,6 +333,13 @@ enum NotificationType {
   SUCCESS
   WARNING
   ERROR
+}
+
+enum WalletHistoryType {
+  PAYMENT
+  WITHDRAWAL
+  WITHDRAWAL_REVERSAL
+  ADJUSTMENT
 }
 
 enum UserRole {

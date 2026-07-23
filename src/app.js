@@ -28,6 +28,9 @@ const adminRoutes = require("./routes/admin.routes");
 const notificationRoutes = require("./routes/notification.routes");
 const platformRoutes = require("./routes/platform.routes");
 const invitationRoutes = require("./routes/invitation.routes");
+const walletHistoryRoutes = require("./routes/walletHistory.routes");
+
+
 
 const app = express();
 
@@ -98,6 +101,11 @@ app.use(
 app.use(
     "/api/invitations",
     invitationRoutes
+);
+
+app.use(
+    "/api/wallet/history",
+    walletHistoryRoutes
 );
 
 app.get("/", (req, res) => {
