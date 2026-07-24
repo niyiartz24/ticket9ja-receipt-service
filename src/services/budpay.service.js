@@ -29,11 +29,12 @@ exports.getBanks = async () => {
 
     } catch (err) {
 
-        console.error(err.response?.data || err.message);
+    console.error("STATUS:", err.response?.status);
+    console.error("DATA:", err.response?.data);
+    console.error("MESSAGE:", err.message);
 
-        throw new Error("Unable to load banks.");
-
-    }
+    throw err;
+}
 
 };
 
@@ -73,12 +74,11 @@ exports.verifyAccount = async (
 
     } catch (err) {
 
-    console.error("STATUS:", err.response?.status);
-    console.error("DATA:", err.response?.data);
-    console.error("MESSAGE:", err.message);
+        console.error(err.response?.data || err.message);
 
-    throw err;
-}
+        throw new Error("Unable to verify bank account.");
+
+    }
 
 };
 
