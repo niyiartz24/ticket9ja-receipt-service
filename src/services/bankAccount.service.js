@@ -1,25 +1,44 @@
 const prisma = require("../config/prisma");
+const budpay = require("./budpay.service");
 
-exports.create = async (data) => {
+function tenantScope(user) {
 
-    const organization =
-        await prisma.organization.findUnique({
-            where: {
-                id: data.organizationId
-            }
-        });
+    switch (user.role) {
 
-    if (!organization) {
-        throw new Error("Organization not found.");
+        case "ORGANIZATION_ADMIN":
+            return {
+                organizationId: user.organizationId
+            };
+
+        case "COLLEGE_ADMIN":
+            return {
+                collegeId: user.collegeId
+            };
+
+        case "DEPARTMENT_ADMIN":
+            return {
+                departmentId: user.departmentId
+            };
+
+        case "SUPER_ADMIN":
+            return {};
+
+        default:
+            throw new Error("Unauthorized.");
+
     }
+
+}
+
+exports.save = async (user, data) => {
+
+    const scope = tenantScope(user);
 
     if (data.isDefault) {
 
         await prisma.bankAccount.updateMany({
 
-            where: {
-                organizationId: data.organizationId
-            },
+            where: scope,
 
             data: {
                 isDefault: false
@@ -29,11 +48,43 @@ exports.create = async (data) => {
 
     }
 
-    return await prisma.bankAccount.create({
+    const existing = await prisma.bankAccount.findFirst({
+
+        where: scope
+
+    });
+
+    if (existing) {
+
+        return prisma.bankAccount.update({
+
+            where: {
+                id: existing.id
+            },
+
+            data: {
+
+                bankName: data.bankName,
+
+                accountName: data.accountName,
+
+                accountNumber: data.accountNumber,
+
+                bankCode: data.bankCode,
+
+                isDefault: data.isDefault ?? existing.isDefault
+
+            }
+
+        });
+
+    }
+
+    return prisma.bankAccount.create({
 
         data: {
 
-            organizationId: data.organizationId,
+            ...scope,
 
             bankName: data.bankName,
 
@@ -41,7 +92,9 @@ exports.create = async (data) => {
 
             accountNumber: data.accountNumber,
 
-            isDefault: data.isDefault || false
+            bankCode: data.bankCode,
+
+            isDefault: data.isDefault ?? true
 
         }
 
@@ -51,73 +104,160 @@ exports.create = async (data) => {
 
 exports.getMine = async (user) => {
 
-    if (user.role === "SUPER_ADMIN") {
-
-        return prisma.bankAccount.findMany();
-
-    }
+    const scope =
+        user.role === "SUPER_ADMIN"
+            ? {}
+            : tenantScope(user);
 
     return prisma.bankAccount.findMany({
 
-        where: {
-            organizationId: user.organizationId
-        },
+        where: scope,
 
         orderBy: {
+
             createdAt: "desc"
+
         }
 
     });
 
 };
 
-exports.makeDefault = async (id) => {
+exports.getAll = async () => {
+
+    return prisma.bankAccount.findMany({
+
+        include: {
+
+            organization: true,
+            college: true,
+            department: true
+
+        },
+
+        orderBy: {
+
+            createdAt: "desc"
+
+        }
+
+    });
+
+};
+
+exports.makeDefault = async (user, id) => {
+
+    const scope =
+        user.role === "SUPER_ADMIN"
+            ? {}
+            : tenantScope(user);
 
     const account =
-        await prisma.bankAccount.findUnique({
+        await prisma.bankAccount.findFirst({
+
             where: {
-                id
+
+                id,
+
+                ...scope
+
             }
+
         });
 
     if (!account) {
+
         throw new Error("Bank account not found.");
+
     }
 
     await prisma.bankAccount.updateMany({
 
-        where: {
-            organizationId: account.organizationId
-        },
+        where: scope,
 
         data: {
+
             isDefault: false
+
         }
 
     });
 
-    return await prisma.bankAccount.update({
+    return prisma.bankAccount.update({
 
         where: {
+
             id
+
         },
 
         data: {
+
             isDefault: true
+
         }
 
     });
 
 };
 
-exports.remove = async (id) => {
+exports.remove = async (user, id) => {
 
-    return await prisma.bankAccount.delete({
+    const scope =
+        user.role === "SUPER_ADMIN"
+            ? {}
+            : tenantScope(user);
+
+    const account =
+        await prisma.bankAccount.findFirst({
+
+            where: {
+
+                id,
+
+                ...scope
+
+            }
+
+        });
+
+    if (!account) {
+
+        throw new Error("Bank account not found.");
+
+    }
+
+    return prisma.bankAccount.delete({
 
         where: {
+
             id
+
         }
 
     });
+
+};
+
+
+
+exports.verify = async ({ bankCode, accountNumber }) => {
+
+    if (!bankCode)
+        throw new Error("Bank code is required.");
+
+    if (!accountNumber)
+        throw new Error("Account number is required.");
+
+    return await budpay.verifyAccount(
+        bankCode,
+        accountNumber
+    );
+
+};
+
+exports.getBanks = async () => {
+
+    return await budpay.getBanks();
 
 };
