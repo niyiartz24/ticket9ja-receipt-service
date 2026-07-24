@@ -1,16 +1,15 @@
 const router = require("express").Router();
 
+const walletController =
+require("../controllers/wallet.controller");
+
 const auth =
 require("../auth/auth.middleware");
 
-const controller =
-require("../controllers/wallet.controller");
-
-router.use(auth);
-
 router.get(
     "/",
-    controller.getMine
+    auth,
+    walletController.getWallet
 );
 
 module.exports = router;
