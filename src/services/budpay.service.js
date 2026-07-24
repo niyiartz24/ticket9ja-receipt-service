@@ -14,28 +14,55 @@ const headers = {
 */
 
 exports.getBanks = async () => {
-
     try {
 
         const { data } = await axios.get(
-
-            `${BASE_URL}/bank-list`,
-
+            `${BASE_URL}/bank_list`,
             { headers }
-
         );
 
         return data.data || [];
 
     } catch (err) {
 
-    console.error("STATUS:", err.response?.status);
-    console.error("DATA:", err.response?.data);
-    console.error("MESSAGE:", err.message);
+        console.error(err.response?.data || err.message);
 
-    throw err;
-}
+        throw new Error("Unable to load banks.");
 
+    }
+};
+
+exports.verifyAccount = async (
+    bankCode,
+    accountNumber
+) => {
+
+    try {
+
+        const { data } = await axios.post(
+            `${BASE_URL}/account_name_verify`,
+            {
+                bank_code: bankCode,
+                account_number: accountNumber
+            },
+            { headers }
+        );
+
+        return {
+
+            accountName: data.data,
+            accountNumber,
+            bankCode
+
+        };
+
+    } catch (err) {
+
+        console.error(err.response?.data || err.message);
+
+        throw new Error("Unable to verify bank account.");
+
+    }
 };
 
 /*
