@@ -1,29 +1,31 @@
-const organizationWallet = require("../services/organizationWallet.service");
+const walletService =
+require("../services/wallet.service");
 
-exports.getWallet = async (req, res) => {
+exports.getMine = async (req, res) => {
+
     try {
 
         const wallet =
-            await organizationWallet.details(
-                req.user.organizationId
+            await walletService.getWallet(
+                req.user
             );
 
         res.json({
+
             success: true,
-            balance: Number(wallet.availableBalance),
-            pending: Number(wallet.pendingBalance),
-            reserved: Number(wallet.reservedBalance),
-            withdrawn: Number(wallet.withdrawnBalance),
-            totalRevenue: Number(wallet.totalRevenue),
-            lastPayoutAt: wallet.updatedAt
+            wallet
+
         });
 
     } catch (err) {
 
-        res.status(500).json({
+        res.status(400).json({
+
             success: false,
             message: err.message
+
         });
 
     }
+
 };

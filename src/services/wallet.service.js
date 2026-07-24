@@ -1,251 +1,58 @@
 const prisma = require("../config/prisma");
 
-exports.createWallet = async (organizationId) => {
+function tenantFilter(user) {
+    switch (user.role) {
 
-    const existing =
-        await prisma.wallet.findUnique({
+        case "ORGANIZATION_ADMIN":
+            return {
+                organizationId: user.organizationId
+            };
 
-            where: {
-                organizationId
-            }
+        case "COLLEGE_ADMIN":
+            return {
+                collegeId: user.collegeId
+            };
 
-        });
+        case "DEPARTMENT_ADMIN":
+            return {
+                departmentId: user.departmentId
+            };
 
-    if (existing) {
+        default:
+            throw new Error("Invalid role.");
+    }
+}
 
-        return existing;
+exports.getWallet = async (user) => {
 
+    if (user.role === "SUPER_ADMIN") {
+        throw new Error("Super Admin has no wallet.");
     }
 
-    return await prisma.wallet.create({
+    const where = tenantFilter(user);
 
-        data: {
-
-            organizationId,
-
-            availableBalance: 0,
-
-            pendingBalance: 0,
-
-            reservedBalance: 0,
-
-            withdrawnBalance: 0,
-
-            totalRevenue: 0
-
-        }
-
+    const wallet = await prisma.wallet.findFirst({
+        where
     });
 
-};
-
-exports.getWallet = async (organizationId) => {
-
-    const wallet =
-        await prisma.wallet.findUnique({
-
-            where: {
-                organizationId
-            }
-
-        });
-
-    if (!wallet) {
-
-        return await exports.createWallet(
-            organizationId
-        );
-
-    }
+    if (!wallet)
+        throw new Error("Wallet not found.");
 
     return wallet;
-
 };
 
-exports.creditWallet = async (
-    organizationId,
-    amount
+exports.updateBalances = async (
+    walletId,
+    data
 ) => {
 
-    await exports.getWallet(
-        organizationId
-    );
-
-    return await prisma.wallet.update({
+    return prisma.wallet.update({
 
         where: {
-            organizationId
+            id: walletId
         },
 
-        data: {
-
-            availableBalance: {
-
-                increment: amount
-
-            },
-
-            totalRevenue: {
-
-                increment: amount
-
-            }
-
-        }
-
-    });
-
-};
-
-exports.debitWallet = async (
-    organizationId,
-    amount
-) => {
-
-    const wallet =
-        await exports.getWallet(
-            organizationId
-        );
-
-    if (
-        wallet.availableBalance < amount
-    ) {
-
-        throw new Error(
-            "Insufficient wallet balance."
-        );
-
-    }
-
-    return await prisma.wallet.update({
-
-        where: {
-            organizationId
-        },
-
-        data: {
-
-            availableBalance: {
-
-                decrement: amount
-
-            },
-
-            withdrawnBalance: {
-
-                increment: amount
-
-            }
-
-        }
-
-    });
-
-};
-
-exports.reserveFunds = async (
-    organizationId,
-    amount
-) => {
-
-    const wallet =
-        await exports.getWallet(
-            organizationId
-        );
-
-    if (
-        wallet.availableBalance < amount
-    ) {
-
-        throw new Error(
-            "Insufficient wallet balance."
-        );
-
-    }
-
-    return await prisma.wallet.update({
-
-        where: {
-            organizationId
-        },
-
-        data: {
-
-            availableBalance: {
-
-                decrement: amount
-
-            },
-
-            reservedBalance: {
-
-                increment: amount
-
-            }
-
-        }
-
-    });
-
-};
-
-exports.releaseFunds = async (
-    organizationId,
-    amount
-) => {
-
-    return await prisma.wallet.update({
-
-        where: {
-            organizationId
-        },
-
-        data: {
-
-            reservedBalance: {
-
-                decrement: amount
-
-            },
-
-            availableBalance: {
-
-                increment: amount
-
-            }
-
-        }
-
-    });
-
-};
-
-exports.completeWithdrawal = async (
-    organizationId,
-    amount
-) => {
-
-    return await prisma.wallet.update({
-
-        where: {
-            organizationId
-        },
-
-        data: {
-
-            reservedBalance: {
-
-                decrement: amount
-
-            },
-
-            withdrawnBalance: {
-
-                increment: amount
-
-            }
-
-        }
+        data
 
     });
 
