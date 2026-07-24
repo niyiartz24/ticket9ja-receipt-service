@@ -1,11 +1,7 @@
 const prisma = require("../config/prisma");
 
-function buildScope(user) {
-
+function tenantScope(user) {
     switch (user.role) {
-
-        case "SUPER_ADMIN":
-            return {};
 
         case "ORGANIZATION_ADMIN":
             return {
@@ -23,151 +19,196 @@ function buildScope(user) {
             };
 
         default:
-            return {};
+            throw new Error("Unauthorized.");
     }
-
-}function buildScope(user) {
-
-    switch (user.role) {
-
-        case "SUPER_ADMIN":
-            return {};
-
-        case "ORGANIZATION_ADMIN":
-            return {
-                organizationId: user.organizationId
-            };
-
-        case "COLLEGE_ADMIN":
-            return {
-                collegeId: user.collegeId
-            };
-
-        case "DEPARTMENT_ADMIN":
-            return {
-                departmentId: user.departmentId
-            };
-
-        default:
-            return {};
-    }
-
 }
 
-exports.request = async (data) => {
+function queryScope(user) {
+    return user.role === "SUPER_ADMIN"
+        ? {}
+        : tenantScope(user);
+}
 
-    const wallet = await prisma.wallet.findUnique({
-        where: {
-            organizationId: data.organizationId
-        }
+/*
+|--------------------------------------------------------------------------
+| Request Withdrawal
+|--------------------------------------------------------------------------
+*/
+
+exports.request = async (user, data) => {
+
+    if (user.role === "SUPER_ADMIN") {
+        throw new Error(
+            "Super Admin cannot request withdrawals."
+        );
+    }
+
+    const scope = tenantScope(user);
+
+    const amount = Number(data.amount);
+
+    const wallet = await prisma.wallet.findFirst({
+        where: scope
     });
 
     if (!wallet) {
         throw new Error("Wallet not found.");
     }
 
-    if (wallet.availableBalance < data.amount) {
+    const balance = Number(wallet.availableBalance);
+
+    if (balance < amount) {
         throw new Error("Insufficient wallet balance.");
     }
 
-    const account = await prisma.bankAccount.findUnique({
+    const account = await prisma.bankAccount.findFirst({
+
         where: {
-            id: data.bankAccountId
+
+            ...scope,
+
+            isDefault: true
+
         }
+
     });
 
     if (!account) {
-        throw new Error("Bank account not found.");
+        throw new Error(
+            "No default bank account configured."
+        );
     }
 
-    if (account.organizationId !== data.organizationId) {
-        throw new Error("Invalid bank account.");
-    }
+    const result = await prisma.$transaction(async (tx) => {
 
-    await prisma.wallet.update({
+        await tx.wallet.update({
 
-        where: {
-            id: wallet.id
-        },
-
-        data: {
-
-            availableBalance: {
-                decrement: data.amount
+            where: {
+                id: wallet.id
             },
 
-            pendingBalance: {
-                increment: data.amount
+            data: {
+
+                availableBalance: {
+                    decrement: amount
+                },
+
+                pendingBalance: {
+                    increment: amount
+                }
+
             }
 
-        }
+        });
+
+        return tx.withdrawal.create({
+
+            data: {
+
+                walletId: wallet.id,
+
+                amount,
+
+                bankName: account.bankName,
+
+                accountName: account.accountName,
+
+                accountNumber: account.accountNumber,
+
+                requestedBy: user.id,
+
+                ...scope
+
+            }
+
+        });
 
     });
 
-    return await prisma.withdrawal.create({
-
-        data: {
-
-            walletId: wallet.id,
-
-            organizationId: data.organizationId,
-
-            amount: data.amount,
-
-            bankName: account.bankName,
-
-            accountName: account.accountName,
-
-            accountNumber: account.accountNumber,
-
-            requestedBy: data.requestedBy
-
-        }
-
-    });
+    return result;
 
 };
 
+/*
+|--------------------------------------------------------------------------
+| Pending Withdrawals
+|--------------------------------------------------------------------------
+*/
+
 exports.getPending = async (user) => {
 
-    const scope = buildScope(user);
+    const scope = queryScope(user);
 
     return prisma.withdrawal.findMany({
 
         where: {
+
             ...scope,
+
             status: "PENDING"
+
         },
 
         include: {
-            organization: true
+
+            organization: true,
+            college: true,
+            department: true
+
         },
 
         orderBy: {
+
             requestedAt: "desc"
+
         }
 
     });
 
 };
 
+/*
+|--------------------------------------------------------------------------
+| Withdrawal History
+|--------------------------------------------------------------------------
+*/
+
 exports.getHistory = async (user) => {
 
-    const scope = buildScope(user);
+    const scope = queryScope(user);
 
     return prisma.withdrawal.findMany({
 
         where: scope,
 
+        include: {
+
+            organization: true,
+            college: true,
+            department: true
+
+        },
+
         orderBy: {
+
             requestedAt: "desc"
+
         }
 
     });
 
 };
 
-exports.approve = async (withdrawalId, adminId) => {
+/*
+|--------------------------------------------------------------------------
+| Approve Withdrawal
+|--------------------------------------------------------------------------
+*/
+
+exports.approve = async (
+    withdrawalId,
+    adminId
+) => {
 
     const withdrawal = await prisma.withdrawal.findUnique({
 
@@ -186,50 +227,65 @@ exports.approve = async (withdrawalId, adminId) => {
     }
 
     if (withdrawal.status !== "PENDING") {
-        throw new Error("Withdrawal already processed.");
+        throw new Error(
+            "Withdrawal already processed."
+        );
     }
 
-    await prisma.wallet.update({
+    return prisma.$transaction(async (tx) => {
 
-        where: {
-            id: withdrawal.walletId
-        },
+        await tx.wallet.update({
 
-        data: {
-
-            pendingBalance: {
-                decrement: withdrawal.amount
+            where: {
+                id: withdrawal.walletId
             },
 
-            withdrawnBalance: {
-                increment: withdrawal.amount
+            data: {
+
+                pendingBalance: {
+                    decrement: withdrawal.amount
+                },
+
+                withdrawnBalance: {
+                    increment: withdrawal.amount
+                }
+
             }
 
-        }
+        });
 
-    });
+        return tx.withdrawal.update({
 
-    return prisma.withdrawal.update({
+            where: {
+                id: withdrawalId
+            },
 
-        where: {
-            id: withdrawalId
-        },
+            data: {
 
-        data: {
+                status: "APPROVED",
 
-            status: "APPROVED",
+                approvedBy: adminId,
 
-            approvedBy: adminId,
+                approvedAt: new Date()
 
-            approvedAt: new Date()
+            }
 
-        }
+        });
 
     });
 
 };
 
-exports.reject = async (withdrawalId, adminId) => {
+/*
+|--------------------------------------------------------------------------
+| Reject Withdrawal
+|--------------------------------------------------------------------------
+*/
+
+exports.reject = async (
+    withdrawalId,
+    adminId
+) => {
 
     const withdrawal = await prisma.withdrawal.findUnique({
 
@@ -248,44 +304,50 @@ exports.reject = async (withdrawalId, adminId) => {
     }
 
     if (withdrawal.status !== "PENDING") {
-        throw new Error("Withdrawal already processed.");
+        throw new Error(
+            "Withdrawal already processed."
+        );
     }
 
-    await prisma.wallet.update({
+    return prisma.$transaction(async (tx) => {
 
-        where: {
-            id: withdrawal.walletId
-        },
+        await tx.wallet.update({
 
-        data: {
-
-            pendingBalance: {
-                decrement: withdrawal.amount
+            where: {
+                id: withdrawal.walletId
             },
 
-            availableBalance: {
-                increment: withdrawal.amount
+            data: {
+
+                pendingBalance: {
+                    decrement: withdrawal.amount
+                },
+
+                availableBalance: {
+                    increment: withdrawal.amount
+                }
+
             }
 
-        }
+        });
 
-    });
+        return tx.withdrawal.update({
 
-    return prisma.withdrawal.update({
+            where: {
+                id: withdrawalId
+            },
 
-        where: {
-            id: withdrawalId
-        },
+            data: {
 
-        data: {
+                status: "REJECTED",
 
-            status: "REJECTED",
+                approvedBy: adminId,
 
-            approvedBy: adminId,
+                approvedAt: new Date()
 
-            approvedAt: new Date()
+            }
 
-        }
+        });
 
     });
 

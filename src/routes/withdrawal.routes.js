@@ -6,28 +6,12 @@ const controller = require("../controllers/withdrawal.controller");
 
 router.use(auth);
 
-/*
-|--------------------------------------------------------------------------
-| Everyone (returns only their own withdrawals)
-|--------------------------------------------------------------------------
-*/
+// own withdrawals
+router.get("/", controller.getMine);
 
-router.get(
-    "/",
-    controller.getMine
-);
+router.post("/", controller.request);
 
-router.post(
-    "/",
-    controller.request
-);
-
-/*
-|--------------------------------------------------------------------------
-| Super Admin only
-|--------------------------------------------------------------------------
-*/
-
+// super admin
 router.get(
     "/pending",
     permit("SUPER_ADMIN"),
@@ -35,13 +19,13 @@ router.get(
 );
 
 router.patch(
-    "/:type/:id/approve",
+    "/:id/approve",
     permit("SUPER_ADMIN"),
     controller.approve
 );
 
 router.patch(
-    "/:type/:id/reject",
+    "/:id/reject",
     permit("SUPER_ADMIN"),
     controller.reject
 );
