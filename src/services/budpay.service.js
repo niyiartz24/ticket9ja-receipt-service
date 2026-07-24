@@ -17,7 +17,7 @@ exports.getBanks = async () => {
     try {
 
         const { data } = await axios.get(
-            `${BASE_URL}/bank_list`,
+            `${BASE_URL}/bank_list/NGN`,
             { headers }
         );
 
