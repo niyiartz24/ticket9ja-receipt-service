@@ -1,7 +1,7 @@
 const prisma = require("../config/prisma");
 const notificationService = require("./notification.service");
 
-exports.request = async (
+exports.requestWithdrawal = async (
     departmentId,
     amount
 ) => {

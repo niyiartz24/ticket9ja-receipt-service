@@ -1,10 +1,11 @@
 const prisma = require("../config/prisma");
 const notificationService = require("./notification.service");
 
-exports.request = async (
+exports.requestWithdrawal = async ({
     organizationId,
-    amount
-) => {
+    amount,
+    requestedBy
+}) => {
 
     const wallet =
         await prisma.organizationWallet.findUnique({
@@ -75,7 +76,7 @@ await prisma.organizationWithdrawal.create({
 
         accountName: bank.accountName,
 
-        requestedBy: organizationId
+        requestedBy
 
     }
 
@@ -241,6 +242,10 @@ exports.reject = async (
     if (!withdrawal) {
         throw new Error("Withdrawal not found.");
     }
+
+    if (withdrawal.status !== "PENDING") {
+    throw new Error("Already processed.");
+}
 
     await prisma.organizationWallet.update({
 
