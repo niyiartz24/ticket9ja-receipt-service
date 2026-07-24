@@ -27,7 +27,7 @@ model Organization {
   receiptTemplate ReceiptTemplate?
   transactions    Transaction[]
   users           User[]
-  Wallet          Wallet?
+  wallet          Wallet?
   withdrawals     Withdrawal[]
   notifications   Notification[]
 }
@@ -47,6 +47,10 @@ model Department {
   transactions   Transaction[]
   users          User[]
   notifications  Notification[]
+
+  wallet       Wallet?
+  bankAccounts BankAccount[]
+  withdrawals  Withdrawal[]
 }
 
 model AcademicSession {
@@ -150,25 +154,43 @@ model User {
   organization   Organization? @relation(fields: [organizationId], references: [id])
 
   notifications Notification[]
-  invitationId String?
+  invitationId  String?
 }
 
 model Withdrawal {
-  id             String           @id @default(cuid())
-  walletId       String
-  organizationId String
-  amount         Decimal          @db.Decimal(18, 2)
-  bankName       String
-  accountNumber  String
-  accountName    String
-  status         WithdrawalStatus @default(PENDING)
-  requestedBy    String
-  approvedBy     String?
-  requestedAt    DateTime         @default(now())
-  approvedAt     DateTime?
-  paidAt         DateTime?
-  organization   Organization     @relation(fields: [organizationId], references: [id])
-  Wallet         Wallet           @relation(fields: [walletId], references: [id])
+  id String @id @default(cuid())
+
+  walletId String
+
+  organizationId String?
+  collegeId      String?
+  departmentId   String?
+
+  amount Decimal @db.Decimal(18, 2)
+
+  bankName      String
+  accountName   String
+  accountNumber String
+
+  status WithdrawalStatus @default(PENDING)
+
+  requestedBy String
+  approvedBy  String?
+
+  requestedAt DateTime  @default(now())
+  approvedAt  DateTime?
+  paidAt      DateTime?
+
+  wallet Wallet @relation(fields: [walletId], references: [id])
+
+  organization Organization? @relation(fields: [organizationId], references: [id])
+  college      College?      @relation(fields: [collegeId], references: [id])
+  department   Department?   @relation(fields: [departmentId], references: [id])
+
+  @@index([organizationId])
+  @@index([collegeId])
+  @@index([departmentId])
+  @@index([status])
 }
 
 model PlatformSettings {
@@ -200,45 +222,63 @@ model College {
   transactions   Transaction[]
   users          User[]
   notifications  Notification[]
-  
+
+  wallet       Wallet?
+  bankAccounts BankAccount[]
+  withdrawals  Withdrawal[]
 
   @@unique([organizationId, name])
 }
 
 model BankAccount {
-  id             String       @id @default(cuid())
-  organizationId String
-  bankName       String
-  accountName    String
-  accountNumber  String
-  isDefault      Boolean      @default(false)
-  createdAt      DateTime     @default(now())
-  organization   Organization @relation(fields: [organizationId], references: [id])
-}
-
-model Invitation {
-  id             String   @id @default(cuid())
-
-  email          String
-  fullName       String
-
-  role           UserRole
+  id String @id @default(cuid())
 
   organizationId String?
   collegeId      String?
   departmentId   String?
 
-  token          String   @unique
+  bankName      String
+  accountName   String
+  accountNumber String
 
-  accepted       Boolean  @default(false)
+  verified  Boolean @default(false)
+  isDefault Boolean @default(false)
 
-  expiresAt      DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  createdAt      DateTime @default(now())
+  organization Organization? @relation(fields: [organizationId], references: [id])
+  college      College?      @relation(fields: [collegeId], references: [id])
+  department   Department?   @relation(fields: [departmentId], references: [id])
 
-  organization   Organization? @relation(fields:[organizationId], references:[id])
-  college        College? @relation(fields:[collegeId], references:[id])
-  department     Department? @relation(fields:[departmentId], references:[id])
+  @@index([organizationId])
+  @@index([collegeId])
+  @@index([departmentId])
+}
+
+model Invitation {
+  id String @id @default(cuid())
+
+  email    String
+  fullName String
+
+  role UserRole
+
+  organizationId String?
+  collegeId      String?
+  departmentId   String?
+
+  token String @unique
+
+  accepted Boolean @default(false)
+
+  expiresAt DateTime
+
+  createdAt DateTime @default(now())
+
+  organization Organization? @relation(fields: [organizationId], references: [id])
+  college      College?      @relation(fields: [collegeId], references: [id])
+  department   Department?   @relation(fields: [departmentId], references: [id])
 
   @@index([email])
   @@index([token])
@@ -257,43 +297,50 @@ model AuditLog {
 model Wallet {
   id String @id @default(uuid())
 
-  organizationId String @unique
+  organizationId String? @unique
+  collegeId      String? @unique
+  departmentId   String? @unique
 
-  availableBalance Decimal @default(0) @db.Decimal(18,2)
-  pendingBalance Decimal @default(0) @db.Decimal(18,2)
-  reservedBalance Decimal @default(0) @db.Decimal(18,2)
-  withdrawnBalance Decimal @default(0) @db.Decimal(18,2)
-  totalRevenue Decimal @default(0) @db.Decimal(18,2)
+  availableBalance Decimal @default(0) @db.Decimal(18, 2)
+  pendingBalance   Decimal @default(0) @db.Decimal(18, 2)
+  reservedBalance  Decimal @default(0) @db.Decimal(18, 2)
+  withdrawnBalance Decimal @default(0) @db.Decimal(18, 2)
+  totalRevenue     Decimal @default(0) @db.Decimal(18, 2)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  Organization Organization @relation(fields:[organizationId], references:[id])
+  organization Organization? @relation(fields: [organizationId], references: [id])
+  college      College?      @relation(fields: [collegeId], references: [id])
+  department   Department?   @relation(fields: [departmentId], references: [id])
 
-  histories WalletHistory[]
+  histories   WalletHistory[]
+  withdrawals Withdrawal[]
 
-  Withdrawal Withdrawal[]
+  @@index([organizationId])
+  @@index([collegeId])
+  @@index([departmentId])
 }
 
 model WalletHistory {
-  id             String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  walletId       String
-  wallet         Wallet   @relation(fields: [walletId], references: [id])
+  walletId String
+  wallet   Wallet @relation(fields: [walletId], references: [id])
 
   organizationId String
 
-  type           WalletHistoryType
+  type WalletHistoryType
 
-  amount         Decimal  @db.Decimal(18,2)
+  amount Decimal @db.Decimal(18, 2)
 
-  balanceBefore  Decimal  @db.Decimal(18,2)
-  balanceAfter   Decimal  @db.Decimal(18,2)
+  balanceBefore Decimal @db.Decimal(18, 2)
+  balanceAfter  Decimal @db.Decimal(18, 2)
 
-  reference      String?
-  description    String?
+  reference   String?
+  description String?
 
-  createdAt      DateTime @default(now())
+  createdAt DateTime @default(now())
 
   @@index([walletId])
   @@index([organizationId])
