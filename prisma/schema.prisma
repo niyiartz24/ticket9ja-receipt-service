@@ -47,6 +47,9 @@ model Department {
   paymentTypes   PaymentType[]
   transactions   Transaction[]
   users          User[]
+  withdrawals    Withdrawal[]
+  bankAccounts   BankAccount[]
+  wallet         Wallet?
 }
 
 model AcademicSession {
@@ -153,35 +156,34 @@ model User {
 }
 
 model Withdrawal {
-
   id String @id @default(cuid())
 
   walletId String
 
   organizationId String?
-  collegeId String?
-  departmentId String?
+  collegeId      String?
+  departmentId   String?
 
-  amount Decimal @db.Decimal(18,2)
+  amount Decimal @db.Decimal(18, 2)
 
-  bankName String
+  bankName      String
   accountNumber String
-  accountName String
+  accountName   String
 
   status WithdrawalStatus @default(PENDING)
 
   requestedBy String
-  approvedBy String?
+  approvedBy  String?
 
-  requestedAt DateTime @default(now())
-  approvedAt DateTime?
-  paidAt DateTime?
+  requestedAt DateTime  @default(now())
+  approvedAt  DateTime?
+  paidAt      DateTime?
 
-  wallet Wallet @relation(fields:[walletId], references:[id])
+  wallet Wallet @relation(fields: [walletId], references: [id])
 
-  organization Organization? @relation(fields:[organizationId], references:[id])
-  college College? @relation(fields:[collegeId], references:[id])
-  department Department? @relation(fields:[departmentId], references:[id])
+  organization Organization? @relation(fields: [organizationId], references: [id])
+  college      College?      @relation(fields: [collegeId], references: [id])
+  department   Department?   @relation(fields: [departmentId], references: [id])
 }
 
 model PlatformSettings {
@@ -213,20 +215,22 @@ model College {
   paymentTypes   PaymentType[]
   transactions   Transaction[]
   users          User[]
+  withdrawals    Withdrawal[]
+  bankAccounts   BankAccount[]
+  wallet         Wallet?
 
   @@unique([organizationId, name])
 }
 
 model BankAccount {
-
   id String @id @default(cuid())
 
   organizationId String?
-  collegeId String?
-  departmentId String?
+  collegeId      String?
+  departmentId   String?
 
-  bankName String
-  accountName String
+  bankName      String
+  accountName   String
   accountNumber String
 
   isDefault Boolean @default(false)
@@ -234,8 +238,8 @@ model BankAccount {
   createdAt DateTime @default(now())
 
   organization Organization? @relation(fields: [organizationId], references: [id])
-  college College? @relation(fields: [collegeId], references: [id])
-  department Department? @relation(fields: [departmentId], references: [id])
+  college      College?      @relation(fields: [collegeId], references: [id])
+  department   Department?   @relation(fields: [departmentId], references: [id])
 }
 
 model Invitation {
@@ -272,23 +276,23 @@ model Wallet {
   id String @id @default(uuid())
 
   organizationId String?
-  collegeId String?
-  departmentId String?
+  collegeId      String?
+  departmentId   String?
 
-  availableBalance Decimal @default(0) @db.Decimal(18,2)
-  pendingBalance Decimal @default(0) @db.Decimal(18,2)
-  reservedBalance Decimal @default(0) @db.Decimal(18,2)
-  withdrawnBalance Decimal @default(0) @db.Decimal(18,2)
-  totalRevenue Decimal @default(0) @db.Decimal(18,2)
+  availableBalance Decimal @default(0) @db.Decimal(18, 2)
+  pendingBalance   Decimal @default(0) @db.Decimal(18, 2)
+  reservedBalance  Decimal @default(0) @db.Decimal(18, 2)
+  withdrawnBalance Decimal @default(0) @db.Decimal(18, 2)
+  totalRevenue     Decimal @default(0) @db.Decimal(18, 2)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   organization Organization? @relation(fields: [organizationId], references: [id])
-  college College? @relation(fields: [collegeId], references: [id])
-  department Department? @relation(fields: [departmentId], references: [id])
+  college      College?      @relation(fields: [collegeId], references: [id])
+  department   Department?   @relation(fields: [departmentId], references: [id])
 
-  histories WalletHistory[]
+  histories   WalletHistory[]
   withdrawals Withdrawal[]
 
   @@unique([organizationId])
