@@ -60,20 +60,7 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/organization-dashboard", organizationDashboardRoutes);
 
 app.use("/api/wallet", walletRoutes);
-app.use(
-    "/api/organization-withdrawals",
-    require("./routes/organizationWithdrawal.routes")
-);
 
-app.use(
-    "/api/college-withdrawals",
-    require("./routes/collegeWithdrawal.routes")
-);
-
-app.use(
-    "/api/department-withdrawals",
-    require("./routes/departmentWithdrawal.routes")
-);
 
 app.use(
     "/api/public",
