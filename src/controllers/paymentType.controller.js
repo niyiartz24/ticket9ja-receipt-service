@@ -6,7 +6,7 @@ exports.getAll = async (req, res) => {
     try {
 
         const paymentTypes =
-            await paymentTypeService.getAll();
+await paymentTypeService.getAll(req.user);
 
         return res.json({
 

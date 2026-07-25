@@ -1,23 +1,50 @@
 const prisma = require("../config/prisma");
 
-exports.getAll = async () => {
+exports.getAll = async (user) => {
 
-    return await prisma.paymentType.findMany({
+    const where = {
+        isActive: true
+    };
+
+    switch (user.role) {
+
+        case "SUPER_ADMIN":
+            break;
+
+        case "ORGANIZATION_ADMIN":
+            where.organizationId = user.organizationId;
+            where.collegeId = null;
+            where.departmentId = null;
+            break;
+
+        case "COLLEGE_ADMIN":
+            where.organizationId = user.organizationId;
+            where.collegeId = user.collegeId;
+            where.departmentId = null;
+            break;
+
+        case "DEPARTMENT_ADMIN":
+        case "FINANCE_OFFICER":
+            where.organizationId = user.organizationId;
+            where.departmentId = user.departmentId;
+            break;
+
+        default:
+            throw new Error("Unauthorized.");
+    }
+
+    return prisma.paymentType.findMany({
+
+        where,
 
         include: {
-
             organization: true,
-
             college: true,
-
             department: true
-
         },
 
         orderBy: {
-
             createdAt: "desc"
-
         }
 
     });
