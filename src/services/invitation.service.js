@@ -59,30 +59,106 @@ if (!data.role)
 
 switch (invitedBy.role) {
 
-    case "SUPER_ADMIN":
+    case "SUPER_ADMIN": {
 
-    if (![
+    const allowedRoles = [
         "ORGANIZATION_ADMIN",
         "COLLEGE_ADMIN",
         "DEPARTMENT_ADMIN",
         "FINANCE_OFFICER",
         "VIEWER"
-    ].includes(data.role)) {
+    ];
+
+    if (!allowedRoles.includes(data.role)) {
         throw new Error("Invalid role.");
     }
 
-    // assign selected tenant
+    // ----------------------------
+    // Organization Admin
+    // ----------------------------
+    if (data.role === "ORGANIZATION_ADMIN") {
 
-    data.organizationId =
-        data.organizationId || null;
+        if (!data.organizationId)
+            throw new Error("Organization is required.");
 
-    data.collegeId =
-        data.collegeId || null;
+        data.collegeId = null;
+        data.departmentId = null;
+    }
 
-    data.departmentId =
-        data.departmentId || null;
+    // ----------------------------
+    // College Admin
+    // ----------------------------
+    if (data.role === "COLLEGE_ADMIN") {
+
+        if (!data.organizationId)
+            throw new Error("Organization is required.");
+
+        if (!data.collegeId)
+            throw new Error("College is required.");
+
+        const college =
+            await prisma.college.findUnique({
+                where: { id: data.collegeId }
+            });
+
+        if (!college)
+            throw new Error("College not found.");
+
+        if (college.organizationId !== data.organizationId)
+            throw new Error(
+                "Selected college does not belong to this organization."
+            );
+
+        data.departmentId = null;
+    }
+
+    // ----------------------------
+    // Department Admin / Finance / Viewer
+    // ----------------------------
+    if (
+        data.role === "DEPARTMENT_ADMIN" ||
+        data.role === "FINANCE_OFFICER" ||
+        data.role === "VIEWER"
+    ) {
+
+        if (!data.organizationId)
+            throw new Error("Organization is required.");
+
+        if (!data.collegeId)
+            throw new Error("College is required.");
+
+        if (!data.departmentId)
+            throw new Error("Department is required.");
+
+        const college =
+            await prisma.college.findUnique({
+                where: { id: data.collegeId }
+            });
+
+        if (!college)
+            throw new Error("College not found.");
+
+        if (college.organizationId !== data.organizationId)
+            throw new Error(
+                "College does not belong to the selected organization."
+            );
+
+        const department =
+            await prisma.department.findUnique({
+                where: { id: data.departmentId }
+            });
+
+        if (!department)
+            throw new Error("Department not found.");
+
+        if (department.collegeId !== data.collegeId)
+            throw new Error(
+                "Department does not belong to the selected college."
+            );
+    }
 
     break;
+}
 
     case "ORGANIZATION_ADMIN":
 
@@ -335,14 +411,19 @@ exports.accept = async (
 
     await notificationService.create({
 
-        type: "SUCCESS",
+    type: "INFO",
 
-        title: "Invitation Accepted",
+    title: "Invitation Sent",
 
-        message:
-`${user.fullName} joined the platform.`
+    message: `${data.fullName} has been invited as ${data.role}.`,
 
-    });
+    organizationId: data.organizationId,
+
+    collegeId: data.collegeId,
+
+    departmentId: data.departmentId
+
+});
 
     return user;
 
@@ -352,10 +433,29 @@ exports.list = async () => {
 
     return prisma.invitation.findMany({
 
+        include: {
+            organization: {
+                select: {
+                    id: true,
+                    name: true
+                }
+            },
+            college: {
+                select: {
+                    id: true,
+                    name: true
+                }
+            },
+            department: {
+                select: {
+                    id: true,
+                    name: true
+                }
+            }
+        },
+
         orderBy: {
-
             createdAt: "desc"
-
         }
 
     });
