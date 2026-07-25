@@ -1,36 +1,69 @@
 const axios = require("axios");
 
-const BASE_URL = "https://api.budpay.com/api/v2";
-
-const headers = {
-    Authorization: `Bearer ${process.env.BUDPAY_SECRET_KEY}`,
-    "Content-Type": "application/json"
-};
+const api = axios.create({
+    baseURL: "https://api.budpay.com/api/v2",
+    headers: {
+        Authorization: `Bearer ${process.env.BUDPAY_SECRET_KEY}`,
+        "Content-Type": "application/json"
+    },
+    timeout: 30000
+});
 
 /*
 |--------------------------------------------------------------------------
-| Get all Nigerian banks
+| Get Nigerian Banks
 |--------------------------------------------------------------------------
 */
 
 exports.getBanks = async () => {
+
     try {
 
-        const { data } = await axios.get(
-            `${BASE_URL}/bank_list/NGN`,
-            { headers }
-        );
+        const { data } = await api.get("/bank_list/NGN");
 
-        return data.data || [];
+        console.log("========== BUDPAY BANK RESPONSE ==========");
+        console.dir(data, { depth: null });
+        console.log("==========================================");
+
+        // Different BudPay versions return different structures
+
+        if (Array.isArray(data)) {
+            return data;
+        }
+
+        if (Array.isArray(data.data)) {
+            return data.data;
+        }
+
+        if (Array.isArray(data.banks)) {
+            return data.banks;
+        }
+
+        if (Array.isArray(data.data?.banks)) {
+            return data.data.banks;
+        }
+
+        return [];
 
     } catch (err) {
 
-        console.error(err.response?.data || err.message);
+        console.error("========== BUDPAY BANK ERROR ==========");
+        console.error(err.response?.status);
+        console.dir(err.response?.data, { depth: null });
+        console.error(err.message);
+        console.error("=======================================");
 
         throw new Error("Unable to load banks.");
 
     }
+
 };
+
+/*
+|--------------------------------------------------------------------------
+| Verify Account Name
+|--------------------------------------------------------------------------
+*/
 
 exports.verifyAccount = async (
     bankCode,
@@ -39,18 +72,28 @@ exports.verifyAccount = async (
 
     try {
 
-        const { data } = await axios.post(
-            `${BASE_URL}/account_name_verify`,
+        const { data } = await api.post(
+            "/account_name_verify",
             {
                 bank_code: bankCode,
                 account_number: accountNumber
-            },
-            { headers }
+            }
         );
+
+        console.log("======= BUDPAY VERIFY RESPONSE =======");
+        console.dir(data, { depth: null });
+        console.log("======================================");
+
+        const accountName =
+            data?.data?.account_name ||
+            data?.data?.accountName ||
+            data?.data ||
+            data?.account_name ||
+            data?.accountName;
 
         return {
 
-            accountName: data.data,
+            accountName,
             accountNumber,
             bankCode
 
@@ -58,50 +101,11 @@ exports.verifyAccount = async (
 
     } catch (err) {
 
-        console.error(err.response?.data || err.message);
-
-        throw new Error("Unable to verify bank account.");
-
-    }
-};
-
-/*
-|--------------------------------------------------------------------------
-| Verify Account Number
-|--------------------------------------------------------------------------
-*/
-
-exports.verifyAccount = async (
-    bankCode,
-    accountNumber
-) => {
-
-    try {
-
-        const { data } = await axios.post(
-
-            `${BASE_URL}/bank/verify`,
-
-            {
-                bank_code: bankCode,
-                account_number: accountNumber
-            },
-
-            { headers }
-
-        );
-
-        return {
-
-            accountName: data.data.account_name,
-            accountNumber: data.data.account_number,
-            bankCode
-
-        };
-
-    } catch (err) {
-
-        console.error(err.response?.data || err.message);
+        console.error("========== VERIFY ERROR ==========");
+        console.error(err.response?.status);
+        console.dir(err.response?.data, { depth: null });
+        console.error(err.message);
+        console.error("==================================");
 
         throw new Error("Unable to verify bank account.");
 
@@ -111,16 +115,16 @@ exports.verifyAccount = async (
 
 /*
 |--------------------------------------------------------------------------
-| Webhook
+| Process Webhook
 |--------------------------------------------------------------------------
 */
 
 exports.processWebhook = async (payload) => {
 
-    console.log("\n================================");
-    console.log("BUDPAY WEBHOOK");
+    console.log("\n========================================");
+    console.log("BUDPAY WEBHOOK RECEIVED");
     console.log(JSON.stringify(payload, null, 2));
-    console.log("================================\n");
+    console.log("========================================\n");
 
     return true;
 
