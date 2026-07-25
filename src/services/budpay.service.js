@@ -25,25 +25,42 @@ exports.getBanks = async () => {
         console.dir(data, { depth: null });
         console.log("==========================================");
 
-        // Different BudPay versions return different structures
+        let banks = [];
 
         if (Array.isArray(data)) {
-            return data;
+
+            banks = data;
+
+        } else if (Array.isArray(data.data)) {
+
+            banks = data.data;
+
+        } else if (Array.isArray(data.banks)) {
+
+            banks = data.banks;
+
+        } else if (Array.isArray(data.data?.banks)) {
+
+            banks = data.data.banks;
+
         }
 
-        if (Array.isArray(data.data)) {
-            return data.data;
-        }
+        // Normalize for frontend
+        return banks.map(bank => ({
 
-        if (Array.isArray(data.banks)) {
-            return data.banks;
-        }
+            code:
+                bank.code ||
+                bank.bank_code,
 
-        if (Array.isArray(data.data?.banks)) {
-            return data.data.banks;
-        }
+            name:
+                (bank.name ||
+                 bank.bank_name ||
+                 "").trim(),
 
-        return [];
+            logo:
+                bank.logo || ""
+
+        }));
 
     } catch (err) {
 
@@ -84,17 +101,17 @@ exports.verifyAccount = async (
         console.dir(data, { depth: null });
         console.log("======================================");
 
-        const accountName =
-            data?.data?.account_name ||
-            data?.data?.accountName ||
-            data?.data ||
-            data?.account_name ||
-            data?.accountName;
-
         return {
 
-            accountName,
+            accountName:
+                data?.data?.account_name ||
+                data?.data?.accountName ||
+                data?.data ||
+                data?.account_name ||
+                data?.accountName,
+
             accountNumber,
+
             bankCode
 
         };
