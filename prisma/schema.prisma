@@ -30,6 +30,7 @@ model Organization {
   users           User[]
   wallet          Wallet?
   withdrawals     Withdrawal[]
+  walletHistories WalletHistory[]
 }
 
 model Department {
@@ -49,6 +50,7 @@ model Department {
   users          User[]
   withdrawals    Withdrawal[]
   bankAccounts   BankAccount[]
+  walletHistories WalletHistory[]
   wallet         Wallet?
 }
 
@@ -217,6 +219,7 @@ model College {
   users          User[]
   withdrawals    Withdrawal[]
   bankAccounts   BankAccount[]
+  walletHistories WalletHistory[]
   wallet         Wallet?
 
   @@unique([organizationId, name])
@@ -304,19 +307,32 @@ model Wallet {
 
 model WalletHistory {
   id             String            @id @default(cuid())
+
   walletId       String
   organizationId String
+  collegeId      String?
+  departmentId   String?
+
   type           WalletHistoryType
+
   amount         Decimal           @db.Decimal(18, 2)
   balanceBefore  Decimal           @db.Decimal(18, 2)
   balanceAfter   Decimal           @db.Decimal(18, 2)
+
   reference      String?
   description    String?
+
   createdAt      DateTime          @default(now())
+
   wallet         Wallet            @relation(fields: [walletId], references: [id])
+  organization   Organization      @relation(fields: [organizationId], references: [id])
+  college        College?          @relation(fields: [collegeId], references: [id])
+  department     Department?       @relation(fields: [departmentId], references: [id])
 
   @@index([walletId])
   @@index([organizationId])
+  @@index([collegeId])
+  @@index([departmentId])
   @@index([createdAt])
 }
 

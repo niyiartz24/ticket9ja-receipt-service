@@ -2,7 +2,7 @@ const prisma = require("../config/prisma");
 
 exports.list = async (user) => {
 
-    let where = {};
+    const where = {};
 
     switch (user.role) {
 
@@ -11,6 +11,17 @@ exports.list = async (user) => {
 
         case "ORGANIZATION_ADMIN":
             where.organizationId = user.organizationId;
+            break;
+
+        case "COLLEGE_ADMIN":
+            where.organizationId = user.organizationId;
+            where.collegeId = user.collegeId;
+            break;
+
+        case "DEPARTMENT_ADMIN":
+        case "FINANCE_OFFICER":
+            where.organizationId = user.organizationId;
+            where.departmentId = user.departmentId;
             break;
 
         default:
