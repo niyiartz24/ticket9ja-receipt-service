@@ -62,190 +62,289 @@ exports.getWallet = async (organizationId) => {
 
 };
 
-exports.creditWallet = async (
+exports.creditWallet = async ({
     organizationId,
-    amount
-) => {
+    collegeId = null,
+    departmentId = null,
+    amount,
+    reference = null,
+    description = null
+}) => {
 
-    await exports.getWallet(
-        organizationId
-    );
+    return await prisma.$transaction(async (tx) => {
 
-    return await prisma.wallet.update({
+        let wallet = await tx.wallet.findUnique({
+            where: { organizationId }
+        });
 
-        where: {
-            organizationId
-        },
-
-        data: {
-
-            availableBalance: {
-
-                increment: amount
-
-            },
-
-            totalRevenue: {
-
-                increment: amount
-
-            }
-
+        if (!wallet) {
+            wallet = await tx.wallet.create({
+                data: {
+                    organizationId,
+                    availableBalance: 0,
+                    pendingBalance: 0,
+                    reservedBalance: 0,
+                    withdrawnBalance: 0,
+                    totalRevenue: 0
+                }
+            });
         }
+
+        const before = Number(wallet.availableBalance);
+        const after = before + Number(amount);
+
+        const updated = await tx.wallet.update({
+            where: { organizationId },
+            data: {
+                availableBalance: {
+                    increment: amount
+                },
+                totalRevenue: {
+                    increment: amount
+                }
+            }
+        });
+
+        await tx.walletHistory.create({
+            data: {
+                walletId: wallet.id,
+                organizationId,
+                collegeId,
+                departmentId,
+                type: "PAYMENT",
+                amount,
+                balanceBefore: before,
+                balanceAfter: after,
+                reference,
+                description
+            }
+        });
+
+        return updated;
 
     });
 
 };
 
-exports.debitWallet = async (
+exports.debitWallet = async ({
     organizationId,
-    amount
-) => {
+    collegeId = null,
+    departmentId = null,
+    amount,
+    reference = null,
+    description = null
+}) => {
 
-    const wallet =
-        await exports.getWallet(
-            organizationId
-        );
+    return await prisma.$transaction(async (tx) => {
 
-    if (
-        wallet.availableBalance < amount
-    ) {
+        const wallet = await tx.wallet.findUnique({
+            where: { organizationId }
+        });
 
-        throw new Error(
-            "Insufficient wallet balance."
-        );
+        if (!wallet)
+            throw new Error("Wallet not found.");
 
-    }
+        const before = Number(wallet.availableBalance);
 
-    return await prisma.wallet.update({
+        if (before < Number(amount))
+            throw new Error("Insufficient wallet balance.");
 
-        where: {
-            organizationId
-        },
+        const after = before - Number(amount);
 
-        data: {
-
-            availableBalance: {
-
-                decrement: amount
-
-            },
-
-            withdrawnBalance: {
-
-                increment: amount
-
+        const updated = await tx.wallet.update({
+            where: { organizationId },
+            data: {
+                availableBalance: {
+                    decrement: amount
+                },
+                withdrawnBalance: {
+                    increment: amount
+                }
             }
+        });
 
-        }
+        await tx.walletHistory.create({
+            data: {
+                walletId: wallet.id,
+                organizationId,
+                collegeId,
+                departmentId,
+                type: "WITHDRAWAL",
+                amount,
+                balanceBefore: before,
+                balanceAfter: after,
+                reference,
+                description
+            }
+        });
+
+        return updated;
 
     });
 
 };
 
-exports.reserveFunds = async (
+exports.reserveFunds = async ({
     organizationId,
-    amount
-) => {
+    collegeId = null,
+    departmentId = null,
+    amount,
+    reference = null,
+    description = null
+}) => {
 
-    const wallet =
-        await exports.getWallet(
-            organizationId
-        );
+    return await prisma.$transaction(async (tx) => {
 
-    if (
-        wallet.availableBalance < amount
-    ) {
+        const wallet = await tx.wallet.findUnique({
+            where: { organizationId }
+        });
 
-        throw new Error(
-            "Insufficient wallet balance."
-        );
+        if (!wallet)
+            throw new Error("Wallet not found.");
 
-    }
+        const before = Number(wallet.availableBalance);
 
-    return await prisma.wallet.update({
+        if (before < Number(amount))
+            throw new Error("Insufficient wallet balance.");
 
-        where: {
-            organizationId
-        },
+        const after = before - Number(amount);
 
-        data: {
-
-            availableBalance: {
-
-                decrement: amount
-
-            },
-
-            reservedBalance: {
-
-                increment: amount
-
+        const updated = await tx.wallet.update({
+            where: { organizationId },
+            data: {
+                availableBalance: {
+                    decrement: amount
+                },
+                reservedBalance: {
+                    increment: amount
+                }
             }
+        });
 
-        }
+        await tx.walletHistory.create({
+            data: {
+                walletId: wallet.id,
+                organizationId,
+                collegeId,
+                departmentId,
+                type: "RESERVE",
+                amount,
+                balanceBefore: before,
+                balanceAfter: after,
+                reference,
+                description
+            }
+        });
+
+        return updated;
 
     });
 
 };
 
-exports.releaseFunds = async (
+exports.releaseFunds = async ({
     organizationId,
-    amount
-) => {
+    collegeId = null,
+    departmentId = null,
+    amount,
+    reference = null,
+    description = null
+}) => {
 
-    return await prisma.wallet.update({
+    return await prisma.$transaction(async (tx) => {
 
-        where: {
-            organizationId
-        },
+        const wallet = await tx.wallet.findUnique({
+            where: { organizationId }
+        });
 
-        data: {
+        if (!wallet)
+            throw new Error("Wallet not found.");
 
-            reservedBalance: {
+        const before = Number(wallet.availableBalance);
+        const after = before + Number(amount);
 
-                decrement: amount
-
-            },
-
-            availableBalance: {
-
-                increment: amount
-
+        const updated = await tx.wallet.update({
+            where: { organizationId },
+            data: {
+                reservedBalance: {
+                    decrement: amount
+                },
+                availableBalance: {
+                    increment: amount
+                }
             }
+        });
 
-        }
+        await tx.walletHistory.create({
+            data: {
+                walletId: wallet.id,
+                organizationId,
+                collegeId,
+                departmentId,
+                type: "RELEASE",
+                amount,
+                balanceBefore: before,
+                balanceAfter: after,
+                reference,
+                description
+            }
+        });
+
+        return updated;
 
     });
 
 };
 
-exports.completeWithdrawal = async (
+exports.completeWithdrawal = async ({
     organizationId,
-    amount
-) => {
+    collegeId = null,
+    departmentId = null,
+    amount,
+    reference = null,
+    description = null
+}) => {
 
-    return await prisma.wallet.update({
+    return await prisma.$transaction(async (tx) => {
 
-        where: {
-            organizationId
-        },
+        const wallet = await tx.wallet.findUnique({
+            where: { organizationId }
+        });
 
-        data: {
+        if (!wallet)
+            throw new Error("Wallet not found.");
 
-            reservedBalance: {
+        const before = Number(wallet.availableBalance);
+        const after = before;
 
-                decrement: amount
-
-            },
-
-            withdrawnBalance: {
-
-                increment: amount
-
+        const updated = await tx.wallet.update({
+            where: { organizationId },
+            data: {
+                reservedBalance: {
+                    decrement: amount
+                },
+                withdrawnBalance: {
+                    increment: amount
+                }
             }
+        });
 
-        }
+        await tx.walletHistory.create({
+            data: {
+                walletId: wallet.id,
+                organizationId,
+                collegeId,
+                departmentId,
+                type: "WITHDRAWAL",
+                amount,
+                balanceBefore: before,
+                balanceAfter: after,
+                reference,
+                description
+            }
+        });
+
+        return updated;
 
     });
 
