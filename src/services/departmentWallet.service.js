@@ -57,6 +57,7 @@ exports.credit = async (
         });
 
         if (!wallet) {
+
             wallet = await tx.wallet.create({
                 data: {
                     departmentId,
@@ -67,39 +68,58 @@ exports.credit = async (
                     totalRevenue: 0
                 }
             });
+
         }
 
         const before = Number(wallet.availableBalance);
         const after = before + Number(amount);
 
         const updated = await tx.wallet.update({
+
             where: { departmentId },
+
             data: {
+
                 availableBalance: {
                     increment: amount
                 },
+
                 totalRevenue: {
                     increment: amount
                 }
+
             }
+
         });
 
         await tx.walletHistory.create({
+
             data: {
+
                 walletId: wallet.id,
+
                 organizationId: wallet.organizationId,
-                collegeId: wallet.collegeId,
+
                 departmentId,
+
                 type: "PAYMENT",
+
                 amount,
+
                 balanceBefore: before,
+
                 balanceAfter: after,
+
                 reference,
+
                 description
+
             }
+
         });
 
         return updated;
+
     });
 
 };
