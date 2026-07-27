@@ -302,16 +302,20 @@ exports.completePayment = async (reference, verification) => {
 if (transaction.departmentId) {
 
     await departmentWallet.credit(
-        transaction.departmentId,
-        Number(transaction.netAmount)
-    );
+    transaction.departmentId,
+    Number(transaction.netAmount),
+    transaction.reference,
+    `Payment received from ${transaction.payerName}`
+);
 
 } else if (transaction.collegeId) {
 
     await collegeWallet.credit(
-        transaction.collegeId,
-        Number(transaction.netAmount)
-    );
+    transaction.collegeId,
+    Number(transaction.netAmount),
+    transaction.reference,
+    `Payment received from ${transaction.payerName}`
+);
 
 } else {
 

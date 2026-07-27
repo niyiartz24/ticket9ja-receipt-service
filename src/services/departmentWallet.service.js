@@ -43,28 +43,63 @@ exports.getOrCreate = async (departmentId) => {
 /**
  * Credit wallet
  */
-exports.credit = async (departmentId, amount) => {
+exports.credit = async (
+    departmentId,
+    amount,
+    reference = null,
+    description = null
+) => {
 
-    await exports.getOrCreate(departmentId);
+    return prisma.$transaction(async (tx) => {
 
-    return prisma.wallet.update({
+        let wallet = await tx.wallet.findUnique({
+            where: { departmentId }
+        });
 
-        where: {
-            departmentId
-        },
-
-        data: {
-
-            availableBalance: {
-                increment: amount
-            },
-
-            totalRevenue: {
-                increment: amount
-            }
-
+        if (!wallet) {
+            wallet = await tx.wallet.create({
+                data: {
+                    departmentId,
+                    availableBalance: 0,
+                    pendingBalance: 0,
+                    reservedBalance: 0,
+                    withdrawnBalance: 0,
+                    totalRevenue: 0
+                }
+            });
         }
 
+        const before = Number(wallet.availableBalance);
+        const after = before + Number(amount);
+
+        const updated = await tx.wallet.update({
+            where: { departmentId },
+            data: {
+                availableBalance: {
+                    increment: amount
+                },
+                totalRevenue: {
+                    increment: amount
+                }
+            }
+        });
+
+        await tx.walletHistory.create({
+            data: {
+                walletId: wallet.id,
+                organizationId: wallet.organizationId,
+                collegeId: wallet.collegeId,
+                departmentId,
+                type: "PAYMENT",
+                amount,
+                balanceBefore: before,
+                balanceAfter: after,
+                reference,
+                description
+            }
+        });
+
+        return updated;
     });
 
 };
