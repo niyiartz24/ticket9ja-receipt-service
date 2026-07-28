@@ -43,12 +43,13 @@ exports.getOrCreate = async (collegeId) => {
 /**
  * Credit wallet
  */
-exports.credit = async (
+exports.credit = async ({
+    organizationId,
     collegeId,
     amount,
     reference = null,
     description = null
-) => {
+}) => {
 
     return prisma.$transaction(async (tx) => {
 
@@ -57,9 +58,9 @@ exports.credit = async (
         });
 
         if (!wallet) {
-
             wallet = await tx.wallet.create({
                 data: {
+                    organizationId,
                     collegeId,
                     availableBalance: 0,
                     pendingBalance: 0,
@@ -68,58 +69,38 @@ exports.credit = async (
                     totalRevenue: 0
                 }
             });
-
         }
 
         const before = Number(wallet.availableBalance);
         const after = before + Number(amount);
 
         const updated = await tx.wallet.update({
-
             where: { collegeId },
-
             data: {
-
                 availableBalance: {
                     increment: amount
                 },
-
                 totalRevenue: {
                     increment: amount
                 }
-
             }
-
         });
 
         await tx.walletHistory.create({
-
             data: {
-
                 walletId: wallet.id,
-
-                organizationId: wallet.organizationId,
-
+                organizationId,
                 collegeId,
-
                 type: "PAYMENT",
-
                 amount,
-
                 balanceBefore: before,
-
                 balanceAfter: after,
-
                 reference,
-
                 description
-
             }
-
         });
 
         return updated;
-
     });
 
 };
@@ -128,7 +109,7 @@ exports.credit = async (
 /**
  * Debit wallet
  */
-exports.debit = async (collegeId, amount) => {
+exports.debit = async ({ collegeId, amount }) => {
 
     const wallet =
         await exports.getOrCreate(collegeId);
