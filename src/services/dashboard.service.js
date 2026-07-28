@@ -30,6 +30,43 @@ exports.getSummary = async (user) => {
 
     const scope = buildScope(user);
 
+    let walletPromise;
+
+switch (user.role) {
+
+    case "SUPER_ADMIN":
+        walletPromise = Promise.resolve(null);
+        break;
+
+    case "ORGANIZATION_ADMIN":
+        walletPromise = prisma.wallet.findUnique({
+            where: {
+                organizationId: user.organizationId
+            }
+        });
+        break;
+
+    case "COLLEGE_ADMIN":
+        walletPromise = prisma.wallet.findUnique({
+            where: {
+                collegeId: user.collegeId
+            }
+        });
+        break;
+
+    case "DEPARTMENT_ADMIN":
+        walletPromise = prisma.wallet.findUnique({
+            where: {
+                departmentId: user.departmentId
+            }
+        });
+        break;
+
+    default:
+        walletPromise = Promise.resolve(null);
+
+}
+
     const [
         organizations,
         colleges,
@@ -81,13 +118,7 @@ exports.getSummary = async (user) => {
             where: scope
         }),
 
-        user.role === "SUPER_ADMIN"
-            ? Promise.resolve(null)
-            : prisma.wallet.findUnique({
-                where: {
-                    organizationId: user.organizationId
-                }
-            })
+        walletPromise
 
     ]);
 
