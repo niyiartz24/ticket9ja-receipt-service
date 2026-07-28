@@ -98,19 +98,92 @@ orgMap[orgName] += netAmount;
   }
 };
 
-exports.fees = async (req, res) => {
+const feeService =
+require("../services/platformFee.service");
+
+
+
+exports.fees = async (req,res)=>{
+
     try {
-        const result = await service.fees();
+
+        const fee =
+            await feeService.get();
+
 
         res.json({
-            success: true,
-            ...result
+
+            success:true,
+
+            percentage:Number(fee.percentage),
+
+            flat:Number(fee.flat),
+
+            cap: fee.cap
+                ? Number(fee.cap)
+                : null
+
         });
 
-    } catch (err) {
+
+    } catch(err){
+
         res.status(500).json({
-            success: false,
-            message: err.message
+
+            success:false,
+
+            message:err.message
+
         });
+
     }
+
+};
+
+
+
+exports.updateFees = async(req,res)=>{
+
+    try {
+
+        const fee =
+            await feeService.update({
+
+                percentage:
+                    Number(req.body.percentage),
+
+
+                flat:
+                    Number(req.body.flat),
+
+
+                cap:
+                    req.body.cap
+                    ? Number(req.body.cap)
+                    : null
+
+            });
+
+
+        res.json({
+
+            success:true,
+
+            fee
+
+        });
+
+
+    }catch(err){
+
+        res.status(500).json({
+
+            success:false,
+
+            message:err.message
+
+        });
+
+    }
+
 };

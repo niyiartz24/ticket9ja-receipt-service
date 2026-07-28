@@ -1,40 +1,50 @@
 const prisma = require("../config/prisma");
 
-exports.calculate = async (amount) => {
 
-    const settings =
-        await prisma.platformSettings.findFirst();
+exports.calculate = async(amount)=>{
 
-    if (!settings) {
 
-        throw new Error(
-            "Platform settings not configured."
-        );
+const feeConfig =
+await prisma.platformFee.findFirst();
 
-    }
 
-    let fee = 0;
 
-    if (settings.feeType === "FIXED") {
+const percentage =
+Number(feeConfig?.percentage || 1.5);
 
-        fee = settings.feeValue;
 
-    } else {
+const flat =
+Number(feeConfig?.flat || 50);
 
-        fee = (amount * settings.feeValue) / 100;
 
-    }
 
-    fee = Number(fee.toFixed(2));
+let fee =
+(amount * percentage)/100 + flat;
 
-    return {
 
-        amount,
 
+if(feeConfig?.cap){
+
+    fee =
+    Math.min(
         fee,
+        Number(feeConfig.cap)
+    );
 
-        total: Number((amount + fee).toFixed(2))
+}
 
-    };
+
+
+return {
+
+amount,
+
+fee,
+
+total:
+amount + fee
+
+};
+
 
 };

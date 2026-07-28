@@ -21,4 +21,10 @@ router.get(
     controller.fees
 );
 
+
+router.put(
+    "/fees",
+    controller.updateFees
+);
+
 module.exports = router;
