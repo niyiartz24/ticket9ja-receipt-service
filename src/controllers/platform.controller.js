@@ -53,7 +53,7 @@ if (!orgMap[orgName]) {
     orgMap[orgName] = 0;
 }
 
-orgMap[orgName] += grossAmount;
+orgMap[orgName] += netAmount;
     });
 
     const labels = Object.keys(revenueMap);
