@@ -33,24 +33,27 @@ exports.getPlatformRevenue = async (req, res) => {
     const orgMap = {};
 
     transactions.forEach(tx => {
-      const amount = Number(tx.amount);
-      const fee = Number(tx.platformFee);
+      const grossAmount = Number(tx.grossAmount);
+const netAmount = Number(tx.netAmount);
+const fee = Number(tx.platformFee);
 
-      gross += amount;
-      net += amount - fee;
-      totalPlatformFees += fee;
+gross += grossAmount;
+net += netAmount;
+totalPlatformFees += fee;
 
-      const label = tx.paymentDate.toISOString().split("T")[0];
+const label = tx.paymentDate.toISOString().split("T")[0];
 
-      revenueMap[label] = (revenueMap[label] || 0) + amount;
+revenueMap[label] =
+    (revenueMap[label] || 0) +
+    grossAmount;
 
-      const orgName = tx.organization.name;
+const orgName = tx.organization.name;
 
-      if (!orgMap[orgName]) {
-        orgMap[orgName] = 0;
-      }
+if (!orgMap[orgName]) {
+    orgMap[orgName] = 0;
+}
 
-      orgMap[orgName] += amount;
+orgMap[orgName] += grossAmount;
     });
 
     const labels = Object.keys(revenueMap);
