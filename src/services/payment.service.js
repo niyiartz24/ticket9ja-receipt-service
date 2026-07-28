@@ -301,21 +301,24 @@ exports.completePayment = async (reference, verification) => {
 
 if (transaction.departmentId) {
 
-    await departmentWallet.credit(
-    transaction.departmentId,
-    Number(transaction.netAmount),
-    transaction.reference,
-    `Payment received from ${transaction.payerName}`
-);
+    await departmentWallet.credit({
+    organizationId: transaction.organizationId,
+    collegeId: transaction.collegeId,
+    departmentId: transaction.departmentId,
+    amount: Number(transaction.netAmount),
+    reference: transaction.reference,
+    description: `Payment received from ${transaction.payerName}`
+});
 
 } else if (transaction.collegeId) {
 
-    await collegeWallet.credit(
-    transaction.collegeId,
-    Number(transaction.netAmount),
-    transaction.reference,
-    `Payment received from ${transaction.payerName}`
-);
+  await collegeWallet.credit({
+    organizationId: transaction.organizationId,
+    collegeId: transaction.collegeId,
+    amount: Number(transaction.netAmount),
+    reference: transaction.reference,
+    description: `Payment received from ${transaction.payerName}`
+});
 
 } else {
 
