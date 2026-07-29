@@ -266,6 +266,8 @@ exports.create = async (data) => {
             defaultAmount:
                 Number(data.defaultAmount),
 
+            level100Amount: data.level100Amount || null,    
+
             organizationId:
                 data.organizationId,
 
