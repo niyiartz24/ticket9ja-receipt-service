@@ -21,6 +21,9 @@ exports.getAll = async (user, query) => {
         throw new Error("Organization not assigned.");
 
     where.organizationId = user.organizationId;
+    where.collegeId = null;
+    where.departmentId = null;
+
     break;
 
 case "COLLEGE_ADMIN":
@@ -29,6 +32,8 @@ case "COLLEGE_ADMIN":
         throw new Error("College not assigned.");
 
     where.collegeId = user.collegeId;
+    where.departmentId = null;
+
     break;
 
 case "DEPARTMENT_ADMIN":
@@ -139,17 +144,26 @@ exports.getOne = async (user, id) => {
 
         case "ORGANIZATION_ADMIN":
 
-            if (transaction.organizationId !== user.organizationId)
-                throw new Error("Access denied.");
+    if (
+        transaction.organizationId !== user.organizationId ||
+        transaction.collegeId !== null ||
+        transaction.departmentId !== null
+    ) {
+        throw new Error("Access denied.");
+    }
 
-            break;
+    break;
 
         case "COLLEGE_ADMIN":
 
-            if (transaction.collegeId !== user.collegeId)
-                throw new Error("Access denied.");
+    if (
+        transaction.collegeId !== user.collegeId ||
+        transaction.departmentId !== null
+    ) {
+        throw new Error("Access denied.");
+    }
 
-            break;
+    break;
 
         case "DEPARTMENT_ADMIN":
 
