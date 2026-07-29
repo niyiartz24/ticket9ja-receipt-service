@@ -67,6 +67,9 @@ model PaymentType {
   title             String
   description       String?
   defaultAmount     Float
+
+  level100Amount    Float?
+
   organizationId    String
   collegeId         String?
   departmentId      String?
@@ -78,6 +81,7 @@ model PaymentType {
   dueDate           DateTime?
   maximumAmount     Float?
   minimumAmount     Float?
+
   college           College?      @relation(fields: [collegeId], references: [id])
   department        Department?   @relation(fields: [departmentId], references: [id])
   organization      Organization  @relation(fields: [organizationId], references: [id])

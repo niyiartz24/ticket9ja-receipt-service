@@ -77,10 +77,17 @@ exports.initialize = async (paymentData) => {
 
     
 
-    const pricing =
-    await feeService.calculate(
-        paymentType.defaultAmount
-    );
+    let payableAmount = paymentType.defaultAmount;
+
+if (
+    String(paymentData.level).trim() === "100" &&
+    paymentType.level100Amount !== null &&
+    paymentType.level100Amount !== undefined
+) {
+    payableAmount = paymentType.level100Amount;
+}
+
+const pricing = await feeService.calculate(payableAmount);
 
     const amount = pricing.amount;
     const platformFee = pricing.fee;
