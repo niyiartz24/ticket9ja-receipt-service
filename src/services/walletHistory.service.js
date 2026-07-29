@@ -11,10 +11,13 @@ exports.list = async (user) => {
 
         case "ORGANIZATION_ADMIN":
             where.organizationId = user.organizationId;
+            where.collegeId = null;
+            where.departmentId = null;
             break;
 
         case "COLLEGE_ADMIN":
             where.collegeId = user.collegeId;
+            where.departmentId = null;
             break;
 
         case "DEPARTMENT_ADMIN":
