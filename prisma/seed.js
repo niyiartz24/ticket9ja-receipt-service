@@ -112,7 +112,8 @@ async function main() {
         }
     });
 
-    await prisma.platformSettings.upsert({
+   // Platform settings
+await prisma.platformSettings.upsert({
 
     where: {
         id: "default-platform"
@@ -137,6 +138,27 @@ async function main() {
     }
 
 });
+
+// Default platform fee configuration
+const existingFee = await prisma.platformFee.findFirst();
+
+if (!existingFee) {
+
+    await prisma.platformFee.create({
+
+        data: {
+
+            percentage: 7.05,
+
+            flat: 0,
+
+            cap: null
+
+        }
+
+    });
+
+}
 
     console.log("✅ Database seeded successfully.");
 }
