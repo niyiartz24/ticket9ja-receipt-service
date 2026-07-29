@@ -201,11 +201,26 @@ renderSession();
       ""
     );
 
-    const amount = pickField(
-      currentPaymentType,
-      ["defaultAmount", "amount"],
-      0
+    let amount =
+    Number(
+        pickField(
+            currentPaymentType,
+            ["defaultAmount", "amount"],
+            0
+        )
     );
+
+const level =
+    document.getElementById("level")?.value;
+    document.getElementById("level").addEventListener("change", renderSummary);
+
+if (
+    level === "100" &&
+    currentPaymentType.level100Amount != null
+) {
+    amount =
+        Number(currentPaymentType.level100Amount);
+}
 
     orgNameEl.textContent = orgName;
     payNameEl.textContent = payTitle;
