@@ -30,7 +30,7 @@ const platformRoutes = require("./routes/platform.routes");
 const invitationRoutes = require("./routes/invitation.routes");
 const walletHistoryRoutes = require("./routes/walletHistory.routes");
 const walletRoutes = require("./routes/wallet.routes");
-
+const auditLogRoutes = require("./routes/auditLog.routes");
 
 
 const app = express();
@@ -95,6 +95,11 @@ app.use(
 app.use(
     "/api/wallet/history",
     walletHistoryRoutes
+);
+
+app.use(
+    "/api/audit-logs",
+    auditLogRoutes
 );
 
 app.get("/", (req, res) => {

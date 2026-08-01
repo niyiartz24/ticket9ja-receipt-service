@@ -34,24 +34,24 @@ model Organization {
 }
 
 model Department {
-  id             String         @id @default(cuid())
-  name           String
-  organizationId String
-  collegeId      String?
-  isActive       Boolean        @default(true)
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  college        College?       @relation(fields: [collegeId], references: [id])
-  organization   Organization   @relation(fields: [organizationId], references: [id])
-  invitations    Invitation[]
-  notifications  Notification[]
-  paymentTypes   PaymentType[]
-  transactions   Transaction[]
-  users          User[]
-  withdrawals    Withdrawal[]
-  bankAccounts   BankAccount[]
+  id              String          @id @default(cuid())
+  name            String
+  organizationId  String
+  collegeId       String?
+  isActive        Boolean         @default(true)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  college         College?        @relation(fields: [collegeId], references: [id])
+  organization    Organization    @relation(fields: [organizationId], references: [id])
+  invitations     Invitation[]
+  notifications   Notification[]
+  paymentTypes    PaymentType[]
+  transactions    Transaction[]
+  users           User[]
+  withdrawals     Withdrawal[]
+  bankAccounts    BankAccount[]
   walletHistories WalletHistory[]
-  wallet         Wallet?
+  wallet          Wallet?
 }
 
 model AcademicSession {
@@ -63,29 +63,29 @@ model AcademicSession {
 }
 
 model PaymentType {
-  id                String        @id @default(cuid())
-  title             String
-  description       String?
-  defaultAmount     Float
+  id            String  @id @default(cuid())
+  title         String
+  description   String?
+  defaultAmount Float
 
-  level100Amount    Float?
+  level100Amount Float?
 
   organizationId    String
   collegeId         String?
   departmentId      String?
-  isActive          Boolean       @default(true)
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
-  allowCustomAmount Boolean       @default(false)
+  isActive          Boolean   @default(true)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  allowCustomAmount Boolean   @default(false)
   createdBy         String?
   dueDate           DateTime?
   maximumAmount     Float?
   minimumAmount     Float?
 
-  college           College?      @relation(fields: [collegeId], references: [id])
-  department        Department?   @relation(fields: [departmentId], references: [id])
-  organization      Organization  @relation(fields: [organizationId], references: [id])
-  transactions      Transaction[]
+  college      College?      @relation(fields: [collegeId], references: [id])
+  department   Department?   @relation(fields: [departmentId], references: [id])
+  organization Organization  @relation(fields: [organizationId], references: [id])
+  transactions Transaction[]
 }
 
 model ReceiptTemplate {
@@ -156,6 +156,7 @@ model User {
   updatedAt      DateTime       @updatedAt
   invitationId   String?
   notifications  Notification[]
+  auditLogs      AuditLog[]
   college        College?       @relation(fields: [collegeId], references: [id])
   department     Department?    @relation(fields: [departmentId], references: [id])
   organization   Organization?  @relation(fields: [organizationId], references: [id])
@@ -204,51 +205,51 @@ model PlatformSettings {
 }
 
 model College {
-  id             String         @id @default(cuid())
-  name           String
-  shortName      String?
-  email          String?
-  phone          String?
-  logo           String?
-  active         Boolean        @default(true)
-  organizationId String
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  organization   Organization   @relation(fields: [organizationId], references: [id])
-  departments    Department[]
-  invitations    Invitation[]
-  notifications  Notification[]
-  paymentTypes   PaymentType[]
-  transactions   Transaction[]
-  users          User[]
-  withdrawals    Withdrawal[]
-  bankAccounts   BankAccount[]
+  id              String          @id @default(cuid())
+  name            String
+  shortName       String?
+  email           String?
+  phone           String?
+  logo            String?
+  active          Boolean         @default(true)
+  organizationId  String
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  organization    Organization    @relation(fields: [organizationId], references: [id])
+  departments     Department[]
+  invitations     Invitation[]
+  notifications   Notification[]
+  paymentTypes    PaymentType[]
+  transactions    Transaction[]
+  users           User[]
+  withdrawals     Withdrawal[]
+  bankAccounts    BankAccount[]
   walletHistories WalletHistory[]
-  wallet         Wallet?
+  wallet          Wallet?
 
   @@unique([organizationId, name])
 }
 
 model BankAccount {
-  id              String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  organizationId  String?
-  collegeId       String?
-  departmentId    String?
+  organizationId String?
+  collegeId      String?
+  departmentId   String?
 
-  bankCode        String
-  bankName        String
-  accountName     String
-  accountNumber   String
+  bankCode      String
+  bankName      String
+  accountName   String
+  accountNumber String
 
-  isDefault       Boolean  @default(false)
+  isDefault Boolean @default(false)
 
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  organization    Organization? @relation(fields: [organizationId], references: [id])
-  college         College?      @relation(fields: [collegeId], references: [id])
-  department      Department?   @relation(fields: [departmentId], references: [id])
+  organization Organization? @relation(fields: [organizationId], references: [id])
+  college      College?      @relation(fields: [collegeId], references: [id])
+  department   Department?   @relation(fields: [departmentId], references: [id])
 }
 
 model Invitation {
@@ -279,6 +280,13 @@ model AuditLog {
   entityId  String?
   metadata  Json?
   createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([action])
+  @@index([entity])
+  @@index([createdAt])
 }
 
 model Wallet {
@@ -310,28 +318,28 @@ model Wallet {
 }
 
 model WalletHistory {
-  id             String            @id @default(cuid())
+  id String @id @default(cuid())
 
   walletId       String
   organizationId String
   collegeId      String?
   departmentId   String?
 
-  type           WalletHistoryType
+  type WalletHistoryType
 
-  amount         Decimal           @db.Decimal(18, 2)
-  balanceBefore  Decimal           @db.Decimal(18, 2)
-  balanceAfter   Decimal           @db.Decimal(18, 2)
+  amount        Decimal @db.Decimal(18, 2)
+  balanceBefore Decimal @db.Decimal(18, 2)
+  balanceAfter  Decimal @db.Decimal(18, 2)
 
-  reference      String?
-  description    String?
+  reference   String?
+  description String?
 
-  createdAt      DateTime          @default(now())
+  createdAt DateTime @default(now())
 
-  wallet         Wallet            @relation(fields: [walletId], references: [id])
-  organization   Organization      @relation(fields: [organizationId], references: [id])
-  college        College?          @relation(fields: [collegeId], references: [id])
-  department     Department?       @relation(fields: [departmentId], references: [id])
+  wallet       Wallet       @relation(fields: [walletId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+  college      College?     @relation(fields: [collegeId], references: [id])
+  department   Department?  @relation(fields: [departmentId], references: [id])
 
   @@index([walletId])
   @@index([organizationId])
@@ -364,14 +372,14 @@ model Notification {
 }
 
 model PlatformFee {
-  id         String   @id @default(cuid())
+  id String @id @default(cuid())
 
-  percentage Decimal  @db.Decimal(5,2) @default(1.50)
-  flat       Decimal  @db.Decimal(18,2) @default(50)
-  cap        Decimal? @db.Decimal(18,2)
+  percentage Decimal  @default(1.50) @db.Decimal(5, 2)
+  flat       Decimal  @default(50) @db.Decimal(18, 2)
+  cap        Decimal? @db.Decimal(18, 2)
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 enum NotificationType {
