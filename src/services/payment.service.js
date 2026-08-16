@@ -9,6 +9,7 @@ const collegeWallet = require("./collegeWallet.service");
 const departmentWallet = require("./departmentWallet.service");
 const feeService = require("./fee.service");
 const notificationService = require("./notification.service");
+const { mapPaymentMethod } = require("../utils/paymentMethod.util");
 
 /**
  * Initialize a payment
@@ -287,7 +288,7 @@ exports.completePayment = async (reference, verification) => {
 
 }
 
-    const transaction = await prisma.transaction.update({
+   const transaction = await prisma.transaction.update({
 
     where: {
         reference
@@ -299,8 +300,11 @@ exports.completePayment = async (reference, verification) => {
 
         paymentDate: new Date(),
 
-        paymentMethod:
-            verification.data.channel || "BUDPAY"
+        verifiedAt: new Date(),
+
+        paymentMethod: mapPaymentMethod(
+            verification.data.channel
+        )
 
     }
 
