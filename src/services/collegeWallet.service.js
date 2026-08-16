@@ -3,7 +3,7 @@ const prisma = require("../config/prisma");
 /**
  * Get or create wallet
  */
-exports.getOrCreate = async (collegeId) => {
+exports.getOrCreate = async (collegeId, organizationId = null) => {
 
     let wallet = await prisma.wallet.findUnique({
         where: {
@@ -13,30 +13,26 @@ exports.getOrCreate = async (collegeId) => {
 
     if (!wallet) {
 
+        if (!organizationId) {
+            throw new Error(
+                "Organization ID is required when creating a college wallet."
+            );
+        }
+
         wallet = await prisma.wallet.create({
-
             data: {
-
+                organizationId,
                 collegeId,
-
                 availableBalance: 0,
-
                 pendingBalance: 0,
-
                 reservedBalance: 0,
-
                 withdrawnBalance: 0,
-
                 totalRevenue: 0
-
             }
-
         });
-
     }
 
     return wallet;
-
 };
 
 
@@ -53,9 +49,17 @@ exports.credit = async ({
 
     return prisma.$transaction(async (tx) => {
 
-        let wallet = await tx.wallet.findUnique({
-            where: { collegeId }
-        });
+        wallet = await tx.wallet.create({
+    data: {
+        organizationId,
+        collegeId,
+        availableBalance: 0,
+        pendingBalance: 0,
+        reservedBalance: 0,
+        withdrawnBalance: 0,
+        totalRevenue: 0
+    }
+});
 
         if (!wallet) {
             wallet = await tx.wallet.create({

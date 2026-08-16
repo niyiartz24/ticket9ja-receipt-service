@@ -1,50 +1,45 @@
 const prisma = require("../config/prisma");
 
+exports.calculate = async (amount) => {
+    const numericAmount = Number(amount);
 
-exports.calculate = async(amount)=>{
+    if (!Number.isFinite(numericAmount) || numericAmount < 0) {
+        throw new Error("Invalid payment amount.");
+    }
 
+    const feeConfig = await prisma.platformFee.findFirst();
 
-const feeConfig =
-await prisma.platformFee.findFirst();
+    const percentage = feeConfig
+        ? Number(feeConfig.percentage)
+        : 1.5;
 
+    const flat = feeConfig
+        ? Number(feeConfig.flat)
+        : 50;
 
+    let fee =
+        (numericAmount * percentage) / 100 +
+        flat;
 
-const percentage =
-Number(feeConfig?.percentage || 1.5);
+    if (
+        feeConfig?.cap !== null &&
+        feeConfig?.cap !== undefined
+    ) {
+        fee = Math.min(
+            fee,
+            Number(feeConfig.cap)
+        );
+    }
 
+    fee = Number(fee.toFixed(2));
 
-const flat =
-Number(feeConfig?.flat || 50);
-
-
-
-let fee =
-(amount * percentage)/100 + flat;
-
-
-
-if(feeConfig?.cap){
-
-    fee =
-    Math.min(
-        fee,
-        Number(feeConfig.cap)
+    const total = Number(
+        (numericAmount + fee).toFixed(2)
     );
 
-}
-
-
-
-return {
-
-amount,
-
-fee,
-
-total:
-amount + fee
-
-};
-
-
+    return {
+        amount: numericAmount,
+        fee,
+        total
+    };
 };

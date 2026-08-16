@@ -3,7 +3,10 @@ const prisma = require("../config/prisma");
 /**
  * Get or create wallet
  */
-exports.getOrCreate = async (departmentId) => {
+exports.getOrCreate = async (
+    departmentId,
+    organizationId = null
+) => {
 
     let wallet = await prisma.wallet.findUnique({
         where: {
@@ -13,30 +16,26 @@ exports.getOrCreate = async (departmentId) => {
 
     if (!wallet) {
 
+        if (!organizationId) {
+            throw new Error(
+                "Organization ID is required when creating a department wallet."
+            );
+        }
+
         wallet = await prisma.wallet.create({
-
             data: {
-
+                organizationId,
                 departmentId,
-
                 availableBalance: 0,
-
                 pendingBalance: 0,
-
                 reservedBalance: 0,
-
                 withdrawnBalance: 0,
-
                 totalRevenue: 0
-
             }
-
         });
-
     }
 
     return wallet;
-
 };
 
 

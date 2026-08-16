@@ -394,6 +394,8 @@ enum WalletHistoryType {
   WITHDRAWAL
   WITHDRAWAL_REVERSAL
   ADJUSTMENT
+  RESERVE
+  RELEASE
 }
 
 enum UserRole {
